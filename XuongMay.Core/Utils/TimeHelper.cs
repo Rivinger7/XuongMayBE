@@ -16,6 +16,7 @@
             return dateTimeOffset.ToOffset(utcPlus7Offset).AddHours(-7);
         }
 
+
         public static DateTime GetUtcPlus7Time()
         {
             // Get the current UTC time
@@ -29,5 +30,12 @@
 
             return utcPlus7Now;
         }
-    }
+
+		public static DateTime ConvertToUtcPlus7(DateTime dateTime)
+		{
+			TimeZoneInfo utcPlus7 = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+			return TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), utcPlus7);
+		}
+	}
+
 }
