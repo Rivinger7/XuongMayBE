@@ -22,8 +22,13 @@ namespace XuongMay.Repositories.UOW
         {
             // Chỉ lấy những người dùng chưa bị xóa mềm
             IEnumerable<User> users = await _dbContext.Users
-                .Where(u => !u.IsDeleted)
+                .Where(user => !user.IsDeleted)
                 .ToListAsync();
+            if (!users.Any())
+            {
+                throw new ArgumentException("Not found!", "notFound");
+            }
+
             return users;
         }
 
@@ -43,7 +48,7 @@ namespace XuongMay.Repositories.UOW
 
         public async Task<User> GetByUsernameAsync(string username)
         {
-            
+
             User retrieveUser = await _dbContext.Users
                 .FirstOrDefaultAsync(user => user.Username == username && !user.IsDeleted);
 
@@ -58,7 +63,7 @@ namespace XuongMay.Repositories.UOW
         public async Task<User> GetByUsernameForRegister(string username)
         {
             User retrieveUser = await _dbContext.Users
-                .FirstOrDefaultAsync(user => user.Username == username);
+                .FirstOrDefaultAsync(user => user.Username == username && !user.IsDeleted);
 
             if (retrieveUser is not null)
             {
@@ -66,6 +71,32 @@ namespace XuongMay.Repositories.UOW
             }
 
             return retrieveUser;
+        }
+
+        public async Task<IEnumerable<User>> GetByFullNameAsync(string fullName)
+        {
+            IEnumerable<User> users = await _dbContext.Users
+                .Where(user => user.FullName.Contains(fullName) && !user.IsDeleted)
+                .ToListAsync();
+            if (!users.Any())
+            {
+                throw new ArgumentException("Not found!", "notFound");
+            }
+
+            return users;
+        }
+
+        public async Task<IEnumerable<User>> GetByRoleAsync(string role)
+        {
+            IEnumerable<User> users = await _dbContext.Users
+        .Where(user => user.Role.ToLower() == role.ToLower() && !user.IsDeleted)
+        .ToListAsync();
+            if (!users.Any())
+            {
+                throw new ArgumentException("Not found!", "notFound");
+            }
+
+            return users;
         }
 
         public async Task CreateAsync(User user)
@@ -86,7 +117,7 @@ namespace XuongMay.Repositories.UOW
                 }
 
                 var existingUser = await _dbContext.Users
-                    .FirstOrDefaultAsync(u => u.Id == user.Id && !u.IsDeleted);
+                    .FirstOrDefaultAsync(user => user.Id == user.Id && !user.IsDeleted);
 
                 if (existingUser is null)
                 {
@@ -94,7 +125,8 @@ namespace XuongMay.Repositories.UOW
                 }
 
                 existingUser.FullName = user.FullName;
-                existingUser.LastUpdatedTime = TimeHelper.GetUtcPlus7Time(); // Change to UTC+7 later
+                existingUser.Password = user.Password;
+                existingUser.LastUpdatedTime = TimeHelper.GetUtcPlus7Time();
 
                 int rowsAffected = await _dbContext.SaveChangesAsync();
 
@@ -106,11 +138,6 @@ namespace XuongMay.Repositories.UOW
                 return;
             }
             catch (ArgumentNullException ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-            catch (ArgumentException ex)
             {
                 Console.WriteLine(ex.Message);
                 throw;
