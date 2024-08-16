@@ -46,7 +46,8 @@ namespace XuongMayBE.API
         {
             services
                 //.AddScoped<IUserService, UserService>()
-                .AddScoped<IUserService, UserService>();
-        }
+                .AddScoped<IUserService, UserService>()
+                .AddScoped<ICategoryService, CategoryService>();
+		}
     }
 }

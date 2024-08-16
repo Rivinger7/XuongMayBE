@@ -21,6 +21,8 @@ builder.Services.AddConfig(builder.Configuration);
 //	o.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
 //		b => b.MigrationsAssembly("GarmentFactory.Repository")));
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

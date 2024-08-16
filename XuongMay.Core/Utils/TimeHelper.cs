@@ -15,5 +15,11 @@
             TimeSpan utcPlus7Offset = new(7, 0, 0);
             return dateTimeOffset.ToOffset(utcPlus7Offset).AddHours(-7);
         }
-    }
+
+		public static DateTime ConvertToUtcPlus7(DateTime dateTime)
+		{
+			TimeZoneInfo utcPlus7 = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+			return TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), utcPlus7);
+		}
+	}
 }

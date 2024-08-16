@@ -13,8 +13,8 @@ namespace GarmentFactory.Repository.Entities
 		public string Name { get; set; }
 		public string? Description { get; set; }
 		public DateTime CreatedTime { get; set; }
-		public DateTime LastUpdatedTime { get; set; }
-		public DateTime DeletedTime { get; set; }
+		public DateTime? LastUpdatedTime { get; set; }
+		public DateTime? DeletedTime { get; set; }
 		public bool IsDeleted { get; set; } = false;
 
 		#region entity Mapping

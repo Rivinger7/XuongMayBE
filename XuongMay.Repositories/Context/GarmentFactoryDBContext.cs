@@ -22,7 +22,7 @@ namespace GarmentFactory.Repository.Context
 		public virtual DbSet<Category> Categories { get; set; }
 		public virtual DbSet<Order> Orders { get; set; }
 		public virtual DbSet<Product> Products { get; set; }
-		public virtual DbSet<Entities.Task> Tasks { get; set; }
+		public virtual DbSet<Entities.Tasks> Tasks { get; set; }
 		#endregion
 
 		// config connection string default if not set
@@ -99,7 +99,7 @@ namespace GarmentFactory.Repository.Context
 				entity.HasCheckConstraint("CK__Order_Status", "[Status] = 'Done' OR [Status] = 'In Progress' OR [Status] = 'Created'");
 			});
 
-			modelBuilder.Entity<Entities.Task>(entity =>
+			modelBuilder.Entity<Entities.Tasks>(entity =>
 			{
 				entity.HasKey(e => e.Id); // set Primary Key
 
