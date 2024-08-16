@@ -1,12 +1,12 @@
-﻿using XuongMay.Contract.Repositories.Interface;
-using XuongMay.Repositories.Context;
+﻿using GarmentFactory.Repository.Context;
+using XuongMay.Contract.Repositories.Interface;
 
 namespace XuongMay.Repositories.UOW
 {
-    public class UnitOfWork(DatabaseContext dbContext) : IUnitOfWork
+    public class UnitOfWork(GarmentFactoryDBContext dbContext) : IUnitOfWork
     {
         private bool disposed = false;
-        private readonly DatabaseContext _dbContext = dbContext;
+        private readonly GarmentFactoryDBContext _dbContext = dbContext;
         public void BeginTransaction()
         {
             _dbContext.Database.BeginTransaction();

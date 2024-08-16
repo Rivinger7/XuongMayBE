@@ -1,15 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GarmentFactory.Repository.Context;
+using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Core;
-using XuongMay.Repositories.Context;
 
 namespace XuongMay.Repositories.UOW
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        protected readonly DatabaseContext _context;
+        protected readonly GarmentFactoryDBContext _context;
         protected readonly DbSet<T> _dbSet;
-        public GenericRepository(DatabaseContext dbContext)
+        public GenericRepository(GarmentFactoryDBContext dbContext)
         {
             _context = dbContext;
             _dbSet = _context.Set<T>();

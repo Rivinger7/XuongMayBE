@@ -105,13 +105,20 @@ namespace GarmentFactory.Repository.Context
 
 				entity.Property(e => e.Id).ValueGeneratedOnAdd(); // set Id Auto Increment
 
-				entity.HasKey(e => new { e.OrderId, e.AssemblyLineId }); // Many to Many relationship
+				// Many to Many Relationship
+				entity.HasOne<AssemblyLine>(a => a.AssemblyLine).WithMany(t => t.Tasks).HasForeignKey(t => t.AssemblyLineId).HasConstraintName("FK_AssemblyLine_Task");
+
+				entity.HasOne<Order>(a => a.Order).WithMany(t => t.Tasks).HasForeignKey(t => t.OrderId).HasConstraintName("FK_Order_Task");
 
 				entity.Property(e => e.StartTime).HasColumnType("datetime");
 
 				entity.Property(e => e.EndTime).HasColumnType("datetime");
 
 				entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
+
+				entity.Property(e => e.Title).HasMaxLength(1000);
+
+				entity.Property(e => e.Description).HasMaxLength(1000);
 
 				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
 

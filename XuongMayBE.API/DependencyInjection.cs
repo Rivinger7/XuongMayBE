@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using GarmentFactory.Repository.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
-using XuongMay.Repositories.Context;
 using XuongMay.Repositories.Entity;
 using XuongMay.Services;
 using XuongMay.Services.Service;
@@ -28,9 +28,9 @@ namespace XuongMayBE.API
         }
         public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<DatabaseContext>(options =>
+            services.AddDbContext<GarmentFactoryDBContext>(options =>
             {
-                options.UseLazyLoadingProxies().UseSqlServer(configuration.GetConnectionString("MyCnn"));
+                options.UseLazyLoadingProxies().UseSqlServer(configuration.GetConnectionString("DBConnection"));
             });
         }
 
@@ -39,7 +39,7 @@ namespace XuongMayBE.API
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
             })
-             .AddEntityFrameworkStores<DatabaseContext>()
+             .AddEntityFrameworkStores<GarmentFactoryDBContext>()
              .AddDefaultTokenProviders();
         }
         public static void AddServices(this IServiceCollection services)

@@ -17,9 +17,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddConfig(builder.Configuration);
 
-builder.Services.AddDbContext<GarmentFactoryDBContext>(o =>
-	o.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
-		b => b.MigrationsAssembly("GarmentFactory.Repository")));
+//builder.Services.AddDbContext<GarmentFactoryDBContext>(o =>
+//	o.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
+//		b => b.MigrationsAssembly("GarmentFactory.Repository")));
 
 var app = builder.Build();
 
