@@ -188,7 +188,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("GarmentFactory.Repository.Entities.Task", b =>
+            modelBuilder.Entity("GarmentFactory.Repository.Entities.Tasks", b =>
                 {
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -236,7 +236,7 @@ namespace GarmentFactory.Repository.Migrations
 
                     b.HasIndex("AssemblyLineId");
 
-                    b.ToTable("Task", t =>
+                    b.ToTable("Tasks", t =>
                         {
                             t.HasCheckConstraint("CK__Task_Status", "[Status] = 'Done' OR [Status] = 'In Progress' OR [Status] = 'Created'");
                         });
@@ -317,7 +317,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("GarmentFactory.Repository.Entities.Task", b =>
+            modelBuilder.Entity("GarmentFactory.Repository.Entities.Tasks", b =>
                 {
                     b.HasOne("GarmentFactory.Repository.Entities.AssemblyLine", "AssemblyLine")
                         .WithMany("Tasks")

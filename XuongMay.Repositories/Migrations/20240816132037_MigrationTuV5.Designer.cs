@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GarmentFactory.Repository.Migrations
 {
     [DbContext(typeof(GarmentFactoryDBContext))]
-    [Migration("20240816084213_test")]
-    partial class test
+    [Migration("20240816132037_MigrationTuV5")]
+    partial class MigrationTuV5
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -260,17 +260,16 @@ namespace GarmentFactory.Repository.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedTime")
+                    b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LastUpdatedTime")
+                    b.Property<DateTime?>("LastUpdatedTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Password")

@@ -22,7 +22,7 @@ namespace GarmentFactory.Repository.Entities
 
 		#region entity Mapping
 		public virtual User User { get; set; }
-		public virtual ICollection<Task> Tasks { get; set; }
+		public virtual ICollection<Tasks> Tasks { get; set; }
 		#endregion
 	}
 }

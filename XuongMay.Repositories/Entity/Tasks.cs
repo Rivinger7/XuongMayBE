@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GarmentFactory.Repository.Entities
 {
-	public class Task
+	public class Tasks
 	{
 		public int Id { get; set; }
 		public int OrderId { get; set; }

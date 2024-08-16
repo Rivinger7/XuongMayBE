@@ -12,18 +12,18 @@ namespace GarmentFactory.Repository.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Task_AssemblyLines_AssemblyLineId",
-                table: "Task");
+                table: "Tasks");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Task_Orders_OrderId",
-                table: "Task");
+                table: "Tasks");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Task",
-                table: "Task");
+                table: "Tasks");
 
             migrationBuilder.RenameTable(
-                name: "Task",
+                name: "Tasks",
                 newName: "Tasks");
 
             migrationBuilder.RenameIndex(
@@ -97,16 +97,16 @@ namespace GarmentFactory.Repository.Migrations
 
             migrationBuilder.RenameTable(
                 name: "Tasks",
-                newName: "Task");
+                newName: "Tasks");
 
             migrationBuilder.RenameIndex(
                 name: "IX_Tasks_AssemblyLineId",
-                table: "Task",
+                table: "Tasks",
                 newName: "IX_Task_AssemblyLineId");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Title",
-                table: "Task",
+                table: "Tasks",
                 type: "nvarchar(max)",
                 nullable: false,
                 oldClrType: typeof(string),
@@ -115,7 +115,7 @@ namespace GarmentFactory.Repository.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "Description",
-                table: "Task",
+                table: "Tasks",
                 type: "nvarchar(max)",
                 nullable: false,
                 oldClrType: typeof(string),
@@ -124,12 +124,12 @@ namespace GarmentFactory.Repository.Migrations
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Task",
-                table: "Task",
+                table: "Tasks",
                 columns: new[] { "OrderId", "AssemblyLineId" });
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Task_AssemblyLines_AssemblyLineId",
-                table: "Task",
+                table: "Tasks",
                 column: "AssemblyLineId",
                 principalTable: "AssemblyLines",
                 principalColumn: "Id",
@@ -137,7 +137,7 @@ namespace GarmentFactory.Repository.Migrations
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Task_Orders_OrderId",
-                table: "Task",
+                table: "Tasks",
                 column: "OrderId",
                 principalTable: "Orders",
                 principalColumn: "Id",

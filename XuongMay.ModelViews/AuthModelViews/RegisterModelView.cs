@@ -9,6 +9,8 @@ namespace XuongMay.ModelViews.AuthModelViews
 {
     public class RegisterModelView
     {
+        [Required(ErrorMessage = "*  Please enter fullname")]
+        public required string FullName { get; set; }
         [Required(ErrorMessage = "*  Please enter username")]
         public required string Username { get; set; }
         [Required(ErrorMessage = "*  Please enter password")]

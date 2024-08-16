@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Repositories.Entity;
+using XuongMay.Repositories.UOW;
 using XuongMay.Services;
 using XuongMay.Services.Service;
 
@@ -44,9 +45,10 @@ namespace XuongMayBE.API
         }
         public static void AddServices(this IServiceCollection services)
         {
-            services
-                //.AddScoped<IUserService, UserService>()
-                .AddScoped<IUserService, UserService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthencationService, AuthenticationService>();
+
+            services.AddScoped<UserRepository>();
         }
     }
 }

@@ -128,7 +128,7 @@ namespace GarmentFactory.Repository.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Task",
+                name: "Tasks",
                 columns: table => new
                 {
                     OrderId = table.Column<int>(type: "int", nullable: false),
@@ -181,7 +181,7 @@ namespace GarmentFactory.Repository.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Task_AssemblyLineId",
-                table: "Task",
+                table: "Tasks",
                 column: "AssemblyLineId");
         }
 
@@ -189,7 +189,7 @@ namespace GarmentFactory.Repository.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Task");
+                name: "Tasks");
 
             migrationBuilder.DropTable(
                 name: "AssemblyLines");

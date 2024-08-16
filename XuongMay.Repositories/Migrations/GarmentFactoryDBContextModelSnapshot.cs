@@ -188,7 +188,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("GarmentFactory.Repository.Entities.Task", b =>
+            modelBuilder.Entity("GarmentFactory.Repository.Entities.Tasks", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -257,17 +257,16 @@ namespace GarmentFactory.Repository.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedTime")
+                    b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LastUpdatedTime")
+                    b.Property<DateTime?>("LastUpdatedTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Password")
@@ -321,7 +320,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("GarmentFactory.Repository.Entities.Task", b =>
+            modelBuilder.Entity("GarmentFactory.Repository.Entities.Tasks", b =>
                 {
                     b.HasOne("GarmentFactory.Repository.Entities.AssemblyLine", "AssemblyLine")
                         .WithMany("Tasks")

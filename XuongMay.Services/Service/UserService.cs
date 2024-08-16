@@ -1,52 +1,54 @@
-﻿using XuongMay.Contract.Repositories.Interface;
+﻿using AutoMapper;
+using GarmentFactory.Repository.Context;
+using GarmentFactory.Repository.Entities;
+using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.UserModelViews;
+using XuongMay.Repositories.UOW;
 
 namespace XuongMay.Services.Service
 {
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public UserService(IUnitOfWork unitOfWork)
+
+        private readonly UserRepository _userRepository;
+        private readonly IMapper _mapper;
+
+        public UserService(IUnitOfWork unitOfWork, UserRepository userRepository, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _userRepository = userRepository;
+            _mapper = mapper;
         }
 
-        public Task<IList<UserResponseModel>> GetAll()
+        public async Task<IEnumerable<UserResponseModel>> GetAllUsersAsync()
         {
-            IList<UserResponseModel> users = new List<UserResponseModel>
-            {
-                new UserResponseModel { Id = "1" },
-                new UserResponseModel { Id = "2" },
-                new UserResponseModel { Id = "3" }
-            };
+            var users = await _userRepository.GetAllUsersAsync();
+            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(users);
 
-            return Task.FromResult(users);
+            return userModel;
         }
 
-        public Task<object> GetAllUsersAsync()
+        public Task<UserResponseModel> GetUserAsync(UserResponseModel userModel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<object> GetUserAsync(object user)
+        public async Task<UserResponseModel> GetUserByIDAsync(int id)
         {
-            throw new NotImplementedException();
+            var user = await _userRepository.GetByIDAsync(id);
+            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(user);
+
+            return userModel;
         }
 
-        public Task<object> GetUserByEmailAsync(string email)
+        public async Task<UserResponseModel> GetUserByUsernameAsync(string username)
         {
-            throw new NotImplementedException();
-        }
+            var user = await _userRepository.GetByUsernameAsync(username);
+            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(user);
 
-        public Task<object> GetUserByIDAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<object> GetUserByUsernameAsync(string username)
-        {
-            throw new NotImplementedException();
+            return userModel;
         }
     }
 }

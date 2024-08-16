@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using GarmentFactory.Repository.Entities;
+using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Base;
 using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -13,11 +14,20 @@ namespace XuongMayBE.API.Controllers
         public UsersController(IUserService userService) {
             _userService = userService;
         }
-        //[HttpGet()]
-        //public async Task<IActionResult> Login(int index = 1, int pageSize = 10)
-        //{
-        //    IList<UserResponseModel> a = await _userService.GetAll();
-        //    return Ok(BaseResponse<IList<UserResponseModel>>.OkResponse(a));
-        //}
+        [HttpGet("get-users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return users is not null ? Ok(users) : NotFound("Not Found!!!");
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+            
+        }
     }
 }

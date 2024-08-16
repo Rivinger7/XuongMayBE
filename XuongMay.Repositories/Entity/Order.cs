@@ -19,7 +19,7 @@ namespace GarmentFactory.Repository.Entities
 		public string Status { get; set; }
 
 		#region entity Mapping
-		public virtual ICollection<Task>? Tasks { get; set; }
+		public virtual ICollection<Tasks>? Tasks { get; set; }
 		public virtual Product Product { get; set; }
 		#endregion
 	}
