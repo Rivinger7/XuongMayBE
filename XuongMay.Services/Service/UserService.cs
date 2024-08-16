@@ -23,5 +23,30 @@ namespace XuongMay.Services.Service
 
             return Task.FromResult(users);
         }
+
+        public Task<object> GetAllUsersAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetUserAsync(object user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetUserByEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetUserByIDAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetUserByUsernameAsync(string username)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
