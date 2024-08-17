@@ -14,6 +14,8 @@ namespace GarmentFactory.Repository.Entities
 		public DateTime? LastUpdatedTime { get; set; }
 		public DateTime? DeletedTime { get; set; }
 		public bool IsDeleted { get; set; } = false;
+		public string? RefreshToken { get; set; }
+		public DateTime? RefreshTokenExpiryTime { get; set; }
 
 		#region entity Mapping
 		public virtual AssemblyLine AssemblyLine { get; set; }

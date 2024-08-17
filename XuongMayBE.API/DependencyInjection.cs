@@ -1,7 +1,9 @@
 ﻿using GarmentFactory.Repository.Context;
+using GarmentFactory.Repository.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Entity;
+using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Repositories.Entity;
 using XuongMay.Repositories.UOW;
@@ -48,12 +50,17 @@ namespace XuongMayBE.API
         {
 
             services.AddScoped<IUserService, UserService>();
+
             services.AddScoped<IAuthencationService, AuthenticationService>();
 
             services.AddScoped<ICategoryService, CategoryService>();
 
-            services.AddScoped<UserRepository>();
-        }
+			services.AddScoped<UserRepository>();
+
+            services.AddTransient<IJwtService, JwtService>();
+
+			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+		}
 
         public static void AddAutoMapper(this IServiceCollection services)
         {

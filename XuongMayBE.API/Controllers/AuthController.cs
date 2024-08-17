@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using GarmentFactory.Repository.Context;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
@@ -9,13 +12,15 @@ namespace XuongMayBE.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly GarmentFactoryDBContext _context;
         private readonly IAuthencationService _authencationService;
-        private readonly IConfiguration _configuration;
+        private readonly IJwtService _jwtService;
 
-        public AuthController(IAuthencationService authencationService, IConfiguration configration)
+        public AuthController(GarmentFactoryDBContext context, IAuthencationService authencationService,IJwtService jwtService)
         {
+            _context = context;
             _authencationService = authencationService;
-            _configuration = configration;
+			_jwtService = jwtService;
         }
 
         [HttpPost("login")]
@@ -23,13 +28,23 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                var userModel = await _authencationService.AuthenticateUserAsync(loginModel);
+                var user = await _authencationService.AuthenticateUserAsync(loginModel);
 
-                Console.WriteLine(_configuration.GetSection("Jwt:SecretKey").Value);
-                // JWT
-                string token = JwtHelper.GenerateToken(_configuration.GetSection("Jwt:SecretKey").Value, userModel.Username,userModel.Role);
+                var claims = new List<Claim>
+				{
+					new Claim(ClaimTypes.Name, user.Id.ToString()),
+					new Claim(ClaimTypes.Role, user.Role)
+				};                
 
-                return Ok(new { message = "Login Successfully", userModel, token });
+                //Call method to generate access token
+                _jwtService.GenerateAccessToken(claims, user.Id, out string accessToken, out string refreshToken);
+
+                return Ok(new AuthenticatedResponseModelView
+                        {  
+                            AccessToken = accessToken,
+							RefreshToken = refreshToken
+                        }
+                );
             }
             catch(ArgumentException aex)
             {
