@@ -1,11 +1,11 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
-using XuongMay.Core.Base;
-using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
     [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -16,13 +16,13 @@ namespace XuongMayBE.API.Controllers
             _userService = userService;
         }
 
-        [HttpGet("get-users")]
+        [HttpGet("active")]
         public async Task<IActionResult> GetAllUsers()
         {
             try
             {
                 var users = await _userService.GetAllUsersAsync();
-                return users is not null ? Ok(new { message = $"Found {users.Count()}", users }) : NotFound("Not Found!!!");
+                return users.Any() ? Ok(new { message = $"Found {users.Count()}", users }) : NotFound("Not Found!!!");
             }
             catch (Exception ex)
             {
@@ -32,7 +32,39 @@ namespace XuongMayBE.API.Controllers
 
         }
 
-        [HttpPost("id")]
+        [HttpGet("admin")]
+        public async Task<IActionResult> GetAllAdmins()
+        {
+            try
+            {
+                var users = await _userService.GetAllAdminsAsync();
+                return users.Any() ? Ok(new { message = $"Found {users.Count()}", users }) : NotFound("Not Found!!!");
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+
+        }
+
+        [HttpGet("manager")]
+        public async Task<IActionResult> GetAllManagers()
+        {
+            try
+            {
+                var users = await _userService.GetAllManagersAsync();
+                return users.Any() ? Ok(new { message = $"Found {users.Count()}", users }) : NotFound("Not Found!!!");
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+
+        }
+
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetUserByID(int id)
         {
             try
@@ -51,55 +83,17 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
-        [HttpPost("username")]
-        public async Task<IActionResult> GetUserByUsername(string username)
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string? username = null, [FromQuery] string? fullName = null, [FromQuery] string? role = null)
         {
             try
             {
-                var user = await _userService.GetUserByUsernameAsync(username);
-                return user is not null ? Ok(user) : NotFound("Not Found!!!");
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(aex.Message);
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error" });
-            }
-        }
-
-        [HttpPost("full-name")]
-        public async Task<IActionResult> GetUserByFullName(string fullName)
-        {
-            try
-            {
-                var user = await _userService.GetUserByFullNameAsync(fullName);
-                return Ok(user);
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(aex.Message);
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error" });
-            }
-        }
-
-        [HttpPost("role")]
-        public async Task<IActionResult> GetUsersByRole(string role)
-        {
-            try
-            {
-                var users = await _userService.GetUsersByRoleAsync(role);
+                var users = await _userService.GetUsersAsync(username, fullName, role);
                 return Ok(users);
             }
-            catch (ArgumentException aex)
+            catch(ArgumentException aex)
             {
-                return BadRequest(aex.Message);
+                return NotFound(aex.Message);
             }
             catch (Exception ex)
             {
@@ -153,7 +147,7 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
-        [HttpDelete("id")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteUserByID(int id)
         {
             try
@@ -173,7 +167,7 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
-        [HttpDelete("username")]
+        [HttpDelete("{username}")]
         public async Task<IActionResult> DeleteUserByUsername(string username)
         {
             try

@@ -19,6 +19,7 @@ namespace XuongMayBE.API
             services.AddIdentity();
             services.AddInfrastructure(configuration);
             services.AddServices();
+            services.AddAutoMapper();
         }
         public static void ConfigRoute(this IServiceCollection services)
         {
@@ -49,12 +50,16 @@ namespace XuongMayBE.API
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthencationService, AuthenticationService>();
 
-			services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
-			services.AddScoped<UserRepository>();
+            services.AddScoped<UserRepository>();
         }
 
-           
-		}
+        public static void AddAutoMapper(this IServiceCollection services)
+        {
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        }
 
     }
+
+}

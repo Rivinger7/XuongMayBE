@@ -1,6 +1,4 @@
-using GarmentFactory.Repository.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -70,12 +68,6 @@ builder.Services.AddAuthentication(options =>
 			ClockSkew = TimeSpan.Zero
 		};
 	});
-
-//builder.Services.AddDbContext<GarmentFactoryDBContext>(o =>
-//	o.UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
-//		b => b.MigrationsAssembly("GarmentFactory.Repository")));
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 

@@ -6,11 +6,10 @@ namespace XuongMay.Contract.Services.Interface
     {
         //Tasks<IList<UserResponseModel>> GetAll();
         Task<IEnumerable<UserResponseModel>> GetAllUsersAsync();
-        Task<UserResponseModel> GetUserAsync(UserResponseModel userModel);
+        Task<IEnumerable<UserResponseModel>> GetAllAdminsAsync();
+        Task<IEnumerable<UserResponseModel>> GetAllManagersAsync();
         Task<UserResponseModel> GetUserByIDAsync(int id);
-        Task<UserResponseModel> GetUserByUsernameAsync(string username);
-        Task<IEnumerable<UserResponseModel>> GetUserByFullNameAsync(string fullName);
-        Task<IEnumerable<UserResponseModel>> GetUsersByRoleAsync(string role);
+        Task<IEnumerable<UserResponseModel>> GetUsersAsync(string? username, string? fullName, string? role);
         Task UpdatePasswordAsync(int id, string newPassword);
         Task UpdateFullNameAsync(int id, string newFullName);
         Task DeleteUserByIDAsync(int id);

@@ -1,10 +1,5 @@
 ﻿using AutoMapper;
 using GarmentFactory.Repository.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.Repositories.UOW;

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Context;
 using GarmentFactory.Repository.Entities;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -30,9 +29,20 @@ namespace XuongMay.Services.Service
             return userModel;
         }
 
-        public Task<UserResponseModel> GetUserAsync(UserResponseModel userModel)
+        public async Task<IEnumerable<UserResponseModel>> GetAllAdminsAsync()
         {
-            throw new NotImplementedException();
+            var users = await _userRepository.GetAllAdminsAsync();
+            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(users);
+
+            return userModel;
+        }
+
+        public async Task<IEnumerable<UserResponseModel>> GetAllManagersAsync()
+        {
+            var users = await _userRepository.GetAllManagersAsync();
+            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(users);
+
+            return userModel;
         }
 
         public async Task<UserResponseModel> GetUserByIDAsync(int id)
@@ -43,25 +53,10 @@ namespace XuongMay.Services.Service
             return userModel;
         }
 
-        public async Task<UserResponseModel> GetUserByUsernameAsync(string username)
+        public async Task<IEnumerable<UserResponseModel>> GetUsersAsync(string? username, string? fullName, string? role)
         {
-            var user = await _userRepository.GetByUsernameAsync(username);
-            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(user);
+            var users = await _userRepository.GetUsersAsync(username, fullName, role);
 
-            return userModel;
-        }
-
-        public async Task<IEnumerable<UserResponseModel>> GetUserByFullNameAsync(string fullName)
-        {
-            var users = await _userRepository.GetByFullNameAsync(fullName);
-            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(users);
-
-            return userModel;
-        }
-
-        public async Task<IEnumerable<UserResponseModel>> GetUsersByRoleAsync(string role)
-        {
-            var users = await _userRepository.GetByRoleAsync(role);
             IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(users);
 
             return userModel;
@@ -95,11 +90,9 @@ namespace XuongMay.Services.Service
 
         public async Task DeleteUserByUsernameAsync(string username)
         {
-            var userModel = await GetUserByUsernameAsync(username);
+            var userModel = await _userRepository.GetByUsernameAsync(username);
 
-            User user = _mapper.Map<UserResponseModel, User>(userModel);
-
-            await _userRepository.DeleteAsync(user);
+            await _userRepository.DeleteAsync(userModel);
         }
     }
 }

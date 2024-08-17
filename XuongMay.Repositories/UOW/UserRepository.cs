@@ -1,10 +1,6 @@
 ﻿using GarmentFactory.Repository.Context;
 using GarmentFactory.Repository.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using XuongMay.Core.Utils;
 
 namespace XuongMay.Repositories.UOW
@@ -20,14 +16,30 @@ namespace XuongMay.Repositories.UOW
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            // Chỉ lấy những người dùng chưa bị xóa mềm
+            // Only get users that have not been soft deleted
             IEnumerable<User> users = await _dbContext.Users
                 .Where(user => !user.IsDeleted)
                 .ToListAsync();
-            if (!users.Any())
-            {
-                throw new ArgumentException("Not found!", "notFound");
-            }
+
+            return users;
+        }
+
+        public async Task<IEnumerable<User>> GetAllAdminsAsync()
+        {
+            // Only get users that have not been soft deleted
+            IEnumerable<User> users = await _dbContext.Users
+                .Where(user => user.Role == "Admin" && !user.IsDeleted)
+                .ToListAsync();
+
+            return users;
+        }
+
+        public async Task<IEnumerable<User>> GetAllManagersAsync()
+        {
+            // Only get users that have not been soft deleted
+            IEnumerable<User> users = await _dbContext.Users
+                .Where(user => user.Role == "Manager" && !user.IsDeleted)
+                .ToListAsync();
 
             return users;
         }
@@ -63,7 +75,7 @@ namespace XuongMay.Repositories.UOW
         public async Task<User> GetByUsernameForRegister(string username)
         {
             User retrieveUser = await _dbContext.Users
-                .FirstOrDefaultAsync(user => user.Username == username && !user.IsDeleted);
+                .FirstOrDefaultAsync(user => user.Username == username && !user.IsDeleted); // It should be Any()
 
             if (retrieveUser is not null)
             {
@@ -86,18 +98,43 @@ namespace XuongMay.Repositories.UOW
             return users;
         }
 
-        public async Task<IEnumerable<User>> GetByRoleAsync(string role)
+        public async Task<IEnumerable<User>> GetUsersAsync(string? username, string? fullName, string? role)
         {
-            IEnumerable<User> users = await _dbContext.Users
-        .Where(user => user.Role.ToLower() == role.ToLower() && !user.IsDeleted)
-        .ToListAsync();
-            if (!users.Any())
+            try
             {
-                throw new ArgumentException("Not found!", "notFound");
-            }
+                var query = _dbContext.Users.AsQueryable();
 
-            return users;
+                if (!string.IsNullOrWhiteSpace(username))
+                {
+                    query = query.Where(user => user.Username.ToLower().Contains(username.ToLower()));
+                }
+
+                if (!string.IsNullOrWhiteSpace(fullName))
+                {
+                    query = query.Where(user => user.FullName.ToLower().Contains(fullName.ToLower()));
+                }
+
+                if (!string.IsNullOrWhiteSpace(role))
+                {
+                    query = query.Where(user => user.Role.ToLower().Contains(role.ToLower()));
+                }
+
+                var users = await query.ToListAsync();
+
+                if (!users.Any())
+                {
+                    throw new ArgumentException("No users found matching the given criteria.", "notFound");
+                }
+
+                return users;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                throw;
+            }
         }
+
 
         public async Task CreateAsync(User user)
         {
