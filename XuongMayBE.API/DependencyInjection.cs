@@ -1,5 +1,4 @@
 ﻿using GarmentFactory.Repository.Context;
-using GarmentFactory.Repository.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Entity;
@@ -22,6 +21,13 @@ namespace XuongMayBE.API
             services.AddInfrastructure(configuration);
             services.AddServices();
             services.AddAutoMapper();
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+            });
         }
         public static void ConfigRoute(this IServiceCollection services)
         {
@@ -48,19 +54,17 @@ namespace XuongMayBE.API
         }
         public static void AddServices(this IServiceCollection services)
         {
-
             services.AddScoped<IUserService, UserService>();
-
             services.AddScoped<IAuthencationService, AuthenticationService>();
+            services.AddScoped<IAssemblyLineService, AssemblyLineService>();
 
             services.AddScoped<ICategoryService, CategoryService>();
 
-			services.AddScoped<UserRepository>();
 
             services.AddTransient<IJwtService, JwtService>();
 
-			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-		}
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        }
 
         public static void AddAutoMapper(this IServiceCollection services)
         {

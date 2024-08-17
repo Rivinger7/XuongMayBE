@@ -2,85 +2,91 @@
 using GarmentFactory.Repository.Entities;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.AuthModelViews;
-using XuongMay.Repositories.UOW;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.UserModelViews;
+using XuongMay.Contract.Repositories.Interface;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace XuongMay.Services.Service
 {
     public class AuthenticationService : IAuthencationService
     {
-        private readonly UserRepository _userRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthenticationService(UserRepository userRepository, IMapper mapper)
+        public AuthenticationService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
-            _userRepository = userRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<UserResponseModel> AuthenticateUserAsync(LoginModelView loginModelView)
         {
-            var user = await _userRepository.GetByUsernameAsync(loginModelView.Username);
-            if (!BCrypt.Net.BCrypt.Verify(loginModelView.Password, user.Password))
+            // Assign value
+            string username = loginModelView.Username;
+            string password = loginModelView.Password;
+
+            // Retrieve user by username from the repository
+            User retrieveUser = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(user => user.Username == username) ?? throw new ArgumentException("Username or Password is incorrect");
+
+            // Verify if the password does not match with password hash
+            if (!BCrypt.Net.BCrypt.Verify(password, retrieveUser.Password))
             {
-                throw new ArgumentException("Username or Password is incorrect", "loginFail");
+                throw new ArgumentException("Username or Password is incorrect");
             }
 
-            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(user);
+            // Store user id in Session
+            _httpContextAccessor.HttpContext.Session.SetString("UserID", retrieveUser.Id.ToString());
+
+            // Map the User entities to UserResponseModel
+            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(retrieveUser);
 
             return userModel;
         }
 
         public async Task RegisterUserAsync(RegisterModelView registerModelView)
         {
-            try
+            // Assign value
+            string username = registerModelView.Username;
+            string password = registerModelView.Password;
+            string confirmedPassword = registerModelView.ConfirmedPassword;
+
+            // Check if the password and confirmation password match
+            bool isConfirmedPassword = password == confirmedPassword;
+            if (!isConfirmedPassword)
             {
-                string username = registerModelView.Username;
-                string password = registerModelView.Password;
-
-                string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-
-                if (await IsUserExistsByUsername(username))
-                {
-                    throw new ArgumentException("Username already exists", "usernameExists");
-                }
-
-                // JWT
-
-                // New User Object
-                User newUser = new()
-                {
-                    Username = username,
-                    Password = passwordHash,
-                    Role = "Manager",
-                    CreatedTime = TimeHelper.GetUtcPlus7Time(),
-                    FullName = registerModelView.FullName,
-                    IsDeleted = false
-                };
-
-                await _userRepository.CreateAsync(newUser);
-
+                throw new ArgumentException("Password and Confirmed Password do not match");
             }
-            catch (Exception ex)
+
+            // Hash Password
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+            bool isExistingUser = await _unitOfWork.GetRepository<User>().Entities.AnyAsync(user => user.Username == username);
+            if (isExistingUser)
             {
-                throw;
+                throw new ArgumentException("Username already exists");
             }
+
+            // JWT
+
+            // New User Object
+            User newUser = new()
+            {
+                Username = username,
+                Password = passwordHash,
+                Role = "Manager",
+                CreatedTime = TimeHelper.GetUtcPlus7Time(),
+                FullName = registerModelView.FullName,
+                IsDeleted = false
+            };
+
+            // Add a new user to the repository
+            await _unitOfWork.GetRepository<User>().InsertAsync(newUser);
+            await _unitOfWork.SaveAsync();
         }
 
-        private async Task<bool> IsUserExistsByUsername(string username)
-        {
-            try
-            {
-                var existingUser = await _userRepository.GetByUsernameForRegister(username);
-
-                return existingUser is not null;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("");
-                throw;
-            }
-        }
     }
 }
