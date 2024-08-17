@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
 
 namespace XuongMayBE.API.Controllers
@@ -9,10 +11,12 @@ namespace XuongMayBE.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthencationService _authencationService;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthencationService authencationService)
+        public AuthController(IAuthencationService authencationService, IConfiguration configration)
         {
             _authencationService = authencationService;
+            _configuration = configration;
         }
 
         [HttpPost("login")]
@@ -22,9 +26,11 @@ namespace XuongMayBE.API.Controllers
             {
                 var userModel = await _authencationService.AuthenticateUserAsync(loginModel);
 
+                Console.WriteLine(_configuration.GetSection("Jwt:SecretKey").Value);
                 // JWT
+                string token = JwtHelper.GenerateToken(_configuration.GetSection("Jwt:SecretKey").Value, userModel.Username,userModel.Role);
 
-                return Ok(new { message = "Login Successfully", userModel });
+                return Ok(new { message = "Login Successfully", userModel, token });
             }
             catch(ArgumentException aex)
             {
