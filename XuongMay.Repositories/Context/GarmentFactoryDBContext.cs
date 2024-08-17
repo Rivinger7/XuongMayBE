@@ -93,10 +93,6 @@ namespace GarmentFactory.Repository.Context
 				entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
 
 				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
-
-				entity.Property(e => e.Status).HasMaxLength(50);
-
-				entity.HasCheckConstraint("CK__Order_Status", "[Status] = 'Done' OR [Status] = 'In Progress' OR [Status] = 'Created'");
 			});
 
 			modelBuilder.Entity<Entities.Tasks>(entity =>
@@ -121,8 +117,6 @@ namespace GarmentFactory.Repository.Context
 				entity.Property(e => e.Description).HasMaxLength(1000);
 
 				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
-
-				entity.HasCheckConstraint("CK__Task_Status", "[Status] = 'Done' OR [Status] = 'In Progress' OR [Status] = 'Created'");
 			});
 
 			modelBuilder.Entity<Product>(entity =>

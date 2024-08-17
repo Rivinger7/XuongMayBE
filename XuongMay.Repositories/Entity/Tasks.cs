@@ -17,10 +17,9 @@ namespace GarmentFactory.Repository.Entities
 		public int Quantity { get; set; }
 		public DateTime StartTime { get; set; }
 		public DateTime EndTime { get; set; }
-		public DateTime LastUpdatedTime { get; set; }
-		public DateTime DeletedTime { get; set; }
-		public bool IsDeleted { get; set; }
-		public string Status { get; set; }
+		public DateTime? LastUpdatedTime { get; set; }
+		public DateTime? DeletedTime { get; set; }
+		public bool IsDeleted { get; set; } = false;
 
 		#region entity Mapping
 		public virtual AssemblyLine AssemblyLine { get; set; }

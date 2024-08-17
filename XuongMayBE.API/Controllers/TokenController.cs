@@ -10,6 +10,7 @@ namespace XuongMayBE.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class TokenController : Controller
 	{
 		private readonly IJwtService _jwtService;
@@ -24,9 +25,11 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="tokenApiModel"></param>
 		/// <returns></returns>
+		[AllowAnonymous]
 		[HttpPost("refresh_token")]
-		public IActionResult RefreshAccessToken(TokenApiModelView tokenApiModel)
+		public async Task<IActionResult> RefreshAccessToken(TokenApiModelView tokenApiModel)
 		{
+			//Call method to refresh access token and get 2 results newAccessToken and newRefreshToken
 			_jwtService.RefreshAccessToken(out string newAccessToken, out string newRefreshToken, tokenApiModel);
 			return Ok(new AuthenticatedResponseModelView()
 			{
@@ -40,8 +43,8 @@ namespace XuongMayBE.API.Controllers
 		/// Revoke the token when neccessary if have any problem about security,...
 		/// </summary>
 		/// <returns></returns>
-		[HttpPost("revoke"), Authorize]
-		public IActionResult Revoke()
+		[HttpPost("revoke")]
+		public async Task<IActionResult> Revoke()
 		{
 			var Id = User.Identity.Name; //get username from claim in token
 			_jwtService.RevokeToken(Id);

@@ -16,8 +16,8 @@ namespace GarmentFactory.Repository.Entities
 		public int NumberOfStaffs { get; set; }
 		public string CreatedBy { get; set; }
 		public DateTime CreatedTime { get; set; }
-		public DateTime LastUpdatedTime { get; set; }
-		public DateTime DeletedTime { get; set; }
+		public DateTime? LastUpdatedTime { get; set; }
+		public DateTime? DeletedTime { get; set; }
 		public bool IsDeleted { get; set; }
 
 		#region entity Mapping
