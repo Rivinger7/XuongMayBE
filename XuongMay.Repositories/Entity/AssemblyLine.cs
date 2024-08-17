@@ -11,14 +11,14 @@ namespace GarmentFactory.Repository.Entities
 	{
 		public int Id { get; set; }
 		public int ManagerId { get; set; }
-		public string Name { get; set; }
+		public string Name { get; set; } = null!;
 		public string? Description { get; set; }
 		public int NumberOfStaffs { get; set; }
-		public string CreatedBy { get; set; }
+		public string CreatedBy { get; set; } = null!;
 		public DateTime CreatedTime { get; set; }
-		public DateTime LastUpdatedTime { get; set; }
-		public DateTime DeletedTime { get; set; }
-		public bool IsDeleted { get; set; }
+		public DateTime? LastUpdatedTime { get; set; }
+		public DateTime? DeletedTime { get; set; }
+		public bool IsDeleted { get; set; } = false;
 
 		#region entity Mapping
 		public virtual User User { get; set; }

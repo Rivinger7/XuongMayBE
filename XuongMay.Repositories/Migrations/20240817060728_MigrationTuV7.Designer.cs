@@ -4,6 +4,7 @@ using GarmentFactory.Repository.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GarmentFactory.Repository.Migrations
 {
     [DbContext(typeof(GarmentFactoryDBContext))]
-    partial class GarmentFactoryDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240817060728_MigrationTuV7")]
+    partial class MigrationTuV7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +44,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime");
 
-                    b.Property<DateTime?>("DeletedTime")
+                    b.Property<DateTime>("DeletedTime")
                         .HasColumnType("datetime");
 
                     b.Property<string>("Description")
@@ -51,7 +54,7 @@ namespace GarmentFactory.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime?>("LastUpdatedTime")
+                    b.Property<DateTime>("LastUpdatedTime")
                         .HasColumnType("datetime");
 
                     b.Property<int>("ManagerId")

@@ -23,22 +23,22 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                var userModel = await _authencationService.AuthenticateUserAsync(loginModel);
+                var retrieveUser = await _authencationService.AuthenticateUserAsync(loginModel);
 
                 Console.WriteLine(_configuration.GetSection("Jwt:SecretKey").Value);
                 // JWT
-                string token = JwtHelper.GenerateToken(_configuration.GetSection("Jwt:SecretKey").Value, userModel.Username,userModel.Role);
+                string token = JwtHelper.GenerateToken(_configuration.GetSection("Jwt:SecretKey").Value, retrieveUser.Username, retrieveUser.Role);
 
-                return Ok(new { message = "Login Successfully", userModel, token });
+                return Ok(new { message = "Login Successfully", retrieveUser, token });
             }
-            catch(ArgumentException aex)
+            catch (ArgumentException aex)
             {
                 return BadRequest(new { message = aex.Message });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error" });
+                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
             }
         }
 
@@ -47,33 +47,19 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                string password = registerModel.Password;
-                string confirmedPassword = registerModel.ConfirmedPassword;
-
-                bool isConfirmedPassword = password == confirmedPassword;
-                if (!isConfirmedPassword)
-                {
-                    throw new ArgumentException("Password and Confirmed Password does not matches");
-                }
-
                 await _authencationService.RegisterUserAsync(registerModel);
-
                 return Ok(new { message = "Account created successfully" });
             }
-            catch(ArgumentException aex)
+            catch (ArgumentException aex)
             {
-                if (aex.ParamName == "usernameExists")
-                {
-                    return Conflict(new { message = aex.Message });
-                }
                 return BadRequest(new { message = aex.Message });
             }
             catch (Exception ex)
             {
                 await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error" });
+                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
             }
-            
+
         }
 
     }

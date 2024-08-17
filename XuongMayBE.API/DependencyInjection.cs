@@ -20,6 +20,13 @@ namespace XuongMayBE.API
             services.AddInfrastructure(configuration);
             services.AddServices();
             services.AddAutoMapper();
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+            });
         }
         public static void ConfigRoute(this IServiceCollection services)
         {
@@ -46,13 +53,11 @@ namespace XuongMayBE.API
         }
         public static void AddServices(this IServiceCollection services)
         {
-
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthencationService, AuthenticationService>();
+            services.AddScoped<IAssemblyLineService, AssemblyLineService>();
 
             services.AddScoped<ICategoryService, CategoryService>();
-
-            services.AddScoped<UserRepository>();
         }
 
         public static void AddAutoMapper(this IServiceCollection services)
