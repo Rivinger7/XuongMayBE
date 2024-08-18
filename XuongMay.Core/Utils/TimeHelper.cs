@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace XuongMay.Core.Utils
+﻿namespace XuongMay.Core.Utils
 {
     public static class TimeHelper
     {
@@ -33,17 +31,10 @@ namespace XuongMay.Core.Utils
             return utcPlus7Now;
         }
 
-		public static DateTime GetUtcPlus7(DateTime dateTime)
+		public static DateTime ConvertToUtcPlus7(DateTime dateTime)
 		{
-			// Define the UTC+7 time zone
 			TimeZoneInfo utcPlus7 = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-
-			// Convert the input DateTime to UTC+7
-			DateTime utcPlus7Time = TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), utcPlus7);
-
-			// Ensure the time is rounded to the nearest second, removing milliseconds
-			return new DateTime(utcPlus7Time.Ticks, DateTimeKind.Unspecified);
-
+			return TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), utcPlus7);
 		}
 		public static DateTime? ConvertStringToDateTime(string dateTimeString)
 		{

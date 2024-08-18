@@ -6,7 +6,7 @@ using XuongMay.ModelViews.CategoryModels;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
     [Route("api/[controller]")]
 	[ApiController]
 	public class CategoryController : ControllerBase
@@ -38,29 +38,10 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Lấy toàn bộ danh mục bằng id
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		[HttpGet("/api/ignored/{id}")]
-		public IActionResult GetCategoryById(int id)
-		{
-			try
-			{
-				var result = _categoryService.GetCategoryById(id);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
-		/// <summary>
 		/// Thêm danh mục mới
 		/// </summary>
 		[HttpPost]
-		public IActionResult Add(AddCategoryModelView model)
+		public IActionResult Add(AddCategoryModel model)
 		{
 			try
 			{
@@ -81,7 +62,7 @@ namespace XuongMayBE.API.Controllers
 		/// <returns></returns>
 		[HttpPut]
 		[Route("/api/[controller]/{id}")]
-		public IActionResult Update(int id, AddCategoryModelView model)
+		public IActionResult Update(int id, AddCategoryModel model)
 		{
 			try
 			{
