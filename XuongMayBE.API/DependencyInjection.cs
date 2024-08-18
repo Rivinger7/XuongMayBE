@@ -59,11 +59,13 @@ namespace XuongMayBE.API
             services.AddScoped<IAssemblyLineService, AssemblyLineService>();
 
             services.AddScoped<ICategoryService, CategoryService>();
+			services.AddScoped<IProductService, ProductService>();
 
 
             services.AddTransient<IJwtService, JwtService>();
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
         }
 
         public static void AddAutoMapper(this IServiceCollection services)
