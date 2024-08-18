@@ -30,7 +30,7 @@ namespace XuongMay.Services.Service
 			//Lấy tất cả các Category chưa bị xóa và sắp xếp theo CreaTime mới nhất
 			IQueryable<Category> categories = _unitOfWork.GetRepository<Category>()
 				.Entities
-				.Where(c => !c.IsDeleted)
+				.Where(c => !c.DeletedTime.HasValue)
 				.OrderByDescending(c => c.CreatedTime);
 
 			//Sắp xếp theo Name
@@ -74,7 +74,7 @@ namespace XuongMay.Services.Service
 			//Check category đã tồn tại hay chưa
 			var existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.IsDeleted);
+									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
 
 			if (existingCategory != null)
 			{
@@ -85,7 +85,6 @@ namespace XuongMay.Services.Service
 			newCategory.CreatedTime = CoreHelper.SystemTimeNows;
 			newCategory.LastUpdatedTime = null;
 			newCategory.DeletedTime = null;
-			newCategory.IsDeleted = false;
 
 			// Lưu category vào database
 			_unitOfWork.GetRepository<Category>().Insert(newCategory);
@@ -116,7 +115,7 @@ namespace XuongMay.Services.Service
 			//Check category có bị trùng tên không?
 			var existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.IsDeleted);
+									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
 
 			if (existingCategory != null)
 			{
