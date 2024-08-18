@@ -1,15 +1,16 @@
-﻿using XuongMay.ModelViews.AssemblyLineModelView;
+﻿using XuongMay.Core;
+using XuongMay.ModelViews.AssemblyLineModelView;
 using XuongMay.ModelViews.AssemblyLineModelViews;
 
 namespace XuongMay.Contract.Services.Interface
 {
     public interface IAssemblyLineService
     {
-        Task<IEnumerable<AssemblyLineModelView>> GetAllAssemblyLineAsync();
+        Task<BasePaginatedList<AssemblyLineModelView>> GetAllAssemblyLineAsync(int pageNumber, int pageSize);
         Task<AssemblyLineModelView> GetAssemblyLineByIDAsync(int id);
         Task<AssemblyLineModelView> GetAssemblyLineByManagerIDAsync(int managerID);
-        Task<IEnumerable<AssemblyLineModelView>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? description);
-        Task<IEnumerable<AssemblyLineModelView>> GetAssemblyLinesByCreatorAsync(string creator);
+        Task<BasePaginatedList<AssemblyLineModelView>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? description, int pageNumber, int pageSize);
+        Task<BasePaginatedList<AssemblyLineModelView>> GetAssemblyLinesByCreatorAsync(string creator, int pageNumber, int pageSize);
         Task CreateAssemblyLineAsync(AssemblyLineCreateModel assemblyLineModel);
         Task UpdateAssemblyLineAsync(int id, AssemblyLineUpdateModel assemblyLineModel);
         Task DeleteAssemblyLineByIDAsync(int id);

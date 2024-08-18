@@ -4,9 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using System.Runtime.ConstrainedExecution;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
+using XuongMay.ModelViews.ProductModelViews;
 using XuongMay.ModelViews.UserModelViews;
-using XuongMay.Repositories.UOW;
 
 namespace XuongMay.Services.Service
 {
@@ -21,7 +22,7 @@ namespace XuongMay.Services.Service
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<UserResponseModel>> GetAllUsersAsync()
+        public async Task<BasePaginatedList<UserResponseModel>> GetAllUsersAsync(int pageNumber, int pageSize)
         {
             // Retrieve all retrieveUser from the repository
             IEnumerable<User> retrieveUsers = await _unitOfWork.GetRepository<User>().Entities.Where(user => !user.IsDeleted).ToListAsync();
@@ -32,13 +33,22 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException("No users found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(retrieveUsers);
+            // Get the total number of users
+            int totalUsers = retrieveUsers.Count();
 
-            return userModel;
+            // Pagination
+            IReadOnlyCollection<User> pageinatedUsers = retrieveUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            // Map the User entities to UserResponseModel
+            IReadOnlyCollection<UserResponseModel> userModel = _mapper.Map<IReadOnlyCollection<User>, IReadOnlyCollection<UserResponseModel>>(pageinatedUsers);
+
+            // Create the paginated list
+            BasePaginatedList<UserResponseModel> paginatedList = new (userModel, totalUsers, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
-        public async Task<IEnumerable<UserResponseModel>> GetAllAdminsAsync()
+        public async Task<BasePaginatedList<UserResponseModel>> GetAllAdminsAsync(int pageNumber, int pageSize)
         {
             // Retrieve all retrieveUser who have role is Admin from the repository
             IEnumerable<User> retrieveUsers = await _unitOfWork.GetRepository<User>().Entities.Where(user => user.Role == "Admin" && !user.IsDeleted).ToListAsync();
@@ -49,13 +59,22 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException("No users found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(retrieveUsers);
+            // Get the total number of users
+            int totalUsers = retrieveUsers.Count();
 
-            return userModel;
+            // Pagination
+            IReadOnlyCollection<User> pageinatedUsers = retrieveUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            // Map the User entities to UserResponseModel
+            IReadOnlyCollection<UserResponseModel> userModel = _mapper.Map<IReadOnlyCollection<User>, IReadOnlyCollection<UserResponseModel>>(pageinatedUsers);
+
+            // Create the paginated list
+            BasePaginatedList<UserResponseModel> paginatedList = new (userModel, totalUsers, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
-        public async Task<IEnumerable<UserResponseModel>> GetAllManagersAsync()
+        public async Task<BasePaginatedList<UserResponseModel>> GetAllManagersAsync(int pageNumber, int pageSize)
         {
             // Retrieve all users who have role is Manager from the repository
             IEnumerable<User> retrieveUsers = await _unitOfWork.GetRepository<User>().Entities.Where(user => user.Role == "Manager" && !user.IsDeleted).ToListAsync();
@@ -66,10 +85,19 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException("No users found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(retrieveUsers);
+            // Get the total number of users
+            int totalUsers = retrieveUsers.Count();
 
-            return userModel;
+            // Pagination
+            IReadOnlyCollection<User> pageinatedUsers = retrieveUsers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            // Map the User entities to UserResponseModel
+            IReadOnlyCollection<UserResponseModel> userModel = _mapper.Map<IReadOnlyCollection<User>, IReadOnlyCollection<UserResponseModel>>(pageinatedUsers);
+
+            // Create the paginated list
+            BasePaginatedList<UserResponseModel> paginatedList = new (userModel, totalUsers, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
         public async Task<UserResponseModel> GetUserByIDAsync(int id)
@@ -86,7 +114,7 @@ namespace XuongMay.Services.Service
             return userModel;
         }
 
-        public async Task<IEnumerable<UserResponseModel>> GetUsersByFilteringAsync(string? username, string? fullName, string? role)
+        public async Task<BasePaginatedList<UserResponseModel>> GetUsersByFilteringAsync(string? username, string? fullName, string? role, int pageNumber, int pageSize)
         {
             // Start with a base query to retrieve users that have not been soft deleted
             IQueryable<User> query = _unitOfWork.GetRepository<User>().Entities.Where(user => !user.IsDeleted);
@@ -110,16 +138,25 @@ namespace XuongMay.Services.Service
             // Retrieve the filtered list of users
             IEnumerable<User> retrieveUsers = await query.ToListAsync();
 
-            // Verify if the list of retrieved users is empty
-            if (!retrieveUsers.Any())
+            // Get the total number of users that match the criteria
+            int totalUsers = await query.CountAsync();
+
+            // Verify if the total number of users is zero
+            if (totalUsers == 0)
             {
                 throw new ArgumentException("No users found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<UserResponseModel> userModel = _mapper.Map<IEnumerable<User>, IEnumerable<UserResponseModel>>(retrieveUsers);
+            // 
+            IReadOnlyCollection<User> paginatedUsers = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            return userModel;
+            // Map the User entities to UserResponseModel
+            IReadOnlyCollection<UserResponseModel> userModel = _mapper.Map<IReadOnlyCollection<User>, IReadOnlyCollection<UserResponseModel>>(paginatedUsers);
+
+            // Create the paginated list
+            BasePaginatedList<UserResponseModel> paginatedList = new (userModel, totalUsers, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
         public async Task UpdatePasswordAsync(int id, string newPassword, string newConfirmPassword)

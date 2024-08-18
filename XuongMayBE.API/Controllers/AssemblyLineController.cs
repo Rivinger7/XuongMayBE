@@ -21,13 +21,15 @@ namespace XuongMayBE.API.Controllers
         /// <summary>
         /// Retrieves all active assembly lines
         /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
         /// <returns>A list of all active assembly lines</returns>
         [HttpGet("active")]
-        public async Task<IActionResult> GetAllAssemblyLines()
+        public async Task<IActionResult> GetAllAssemblyLines(int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveAssemblyLines = await _assemblyLineService.GetAllAssemblyLineAsync();
+                var retrieveAssemblyLines = await _assemblyLineService.GetAllAssemblyLineAsync(pageNumber, pageSize);
                 return Ok(retrieveAssemblyLines);
             }
             catch (ArgumentException aex)
@@ -93,13 +95,15 @@ namespace XuongMayBE.API.Controllers
         /// Retrieves assembly lines by the creator's name
         /// </summary>
         /// <param name="name"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
         /// <returns>A list of assembly lines created by the creator's name</returns>
         [HttpGet("by-creator/{name}")]
-        public async Task<IActionResult> GetAssemblyLinesByCreatorAsync(string name)
+        public async Task<IActionResult> GetAssemblyLinesByCreatorAsync(string name, int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByCreatorAsync(name);
+                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByCreatorAsync(name, pageNumber, pageSize);
                 return Ok(retrieveAssemblyLine);
             }
             catch (ArgumentException aex)
@@ -118,13 +122,15 @@ namespace XuongMayBE.API.Controllers
         /// </summary>
         /// <param name="assemblyLineName"></param>
         /// <param name="description"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
         /// <returns>A list of assembly lines matching the specified filters</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> GetAssemblyLinesByFilteringAsync([FromQuery] string? assemblyLineName, [FromQuery] string? description)
+        public async Task<IActionResult> GetAssemblyLinesByFilteringAsync([FromQuery] string? assemblyLineName, [FromQuery] string? description, int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByFilteringAsync(assemblyLineName, description);
+                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByFilteringAsync(assemblyLineName, description, pageNumber, pageSize);
                 return Ok(retrieveAssemblyLine);
             }
             catch (ArgumentException aex)

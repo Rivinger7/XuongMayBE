@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using GarmentFactory.Repository.Entities;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.OrderModelViews;
 
@@ -19,7 +20,7 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 		}
 
-		public List<AllOrderModelView> GetAllOrder(string searchByProductName)
+		public BasePaginatedList<AllOrderModelView> GetAllOrder(string searchByProductName, int pageNumber, int pageSize)
 		{
 			//Tạo câu truy vấn IQueryable để lấy dữ liệu từ bảng Order trong database
 			//Lấy tất cả Order chưa bị xóa sắp xếp theo CreaTime mới nhất
@@ -34,10 +35,18 @@ namespace XuongMay.Services.Service
 				orders = orders.Where(o => o.Product.Name.Contains(searchByProductName));
 			}
 
-			// Trả về danh sách các đơn hàng dưới dạng AllOrderModelView
-			return orders
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalOrders = orders.Count();
+
+			// Áp dụng phân trang
+			List<AllOrderModelView> pagedOrders = orders
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
 				.ProjectTo<AllOrderModelView>(_mapper.ConfigurationProvider)
 				.ToList();
+
+			// Tạo BasePaginatedList và trả về
+			return new BasePaginatedList<AllOrderModelView>(pagedOrders, totalOrders, pageNumber, pageSize);
 		}
 
 		public AllOrderModelView AddOrder(AddOrderModelView model)
@@ -47,9 +56,15 @@ namespace XuongMay.Services.Service
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0.");
 			}
-
+			//Check StartTime & EndTime không được để trống 
+			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
+			{
+				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+			}
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
 			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
-			if (model.StartTime >= model.EndTime)
+			if (startTime >= endTime)
 			{
 				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
 			}
@@ -63,6 +78,8 @@ namespace XuongMay.Services.Service
 			//Tạo đơn hàng mới
 			Order newOrder = _mapper.Map<Order>(model);
 			newOrder.ProductId = model.ProductId;
+			newOrder.StartTime = startTime;
+			newOrder.EndTime = endTime;
 			newOrder.CreatedTime = CoreHelper.SystemTimeNows;
 			newOrder.LastUpdatedTime = null;
 			newOrder.DeletedTime = null;
@@ -81,12 +98,6 @@ namespace XuongMay.Services.Service
 			if(model.Quantity <= 0)
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0");
-			}
-
-			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
-			if(model.StartTime >= model.EndTime)
-			{
-				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
 			}
 
 			//Check đơn hàng đó có tồn tại không
@@ -115,9 +126,24 @@ namespace XuongMay.Services.Service
 				throw new Exception("Không thể thay đổi sản phẩm vì đơn hàng đã có nhiệm vụ được giao.");
 			}
 
+			//Check StartTime & EndTime không được để trống 
+			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
+			{
+				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+			}
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
+			if (startTime >= endTime)
+			{
+				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
+			}
+
 			//Cập nhật và lưu đơn hàng
 			_mapper.Map(model, order);
 			order.LastUpdatedTime = CoreHelper.SystemTimeNows;
+			order.StartTime = startTime;
+			order.EndTime = endTime;
 
 			_unitOfWork.GetRepository<Order>().Update(order);
 			_unitOfWork.Save();

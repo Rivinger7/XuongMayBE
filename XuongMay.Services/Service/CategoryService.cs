@@ -8,8 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.CategoryModels;
+using XuongMay.ModelViews.OrderModelViews;
 using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMay.Services.Service
@@ -25,13 +27,19 @@ namespace XuongMay.Services.Service
 			_unitOfWork = unitOfWork;
 		}
 
-		public List<AllCategoryModel> GetAllCategory(bool? sortByName)
+		public BasePaginatedList<AllCategoryModel> GetAllCategory(int? id, bool? sortByName, int pageNumber, int pageSize)
 		{
 			//Lấy tất cả các Category chưa bị xóa và sắp xếp theo CreaTime mới nhất
 			IQueryable<Category> categories = _unitOfWork.GetRepository<Category>()
 				.Entities
-				.Where(c => !c.IsDeleted)
+				.Where(c => !c.DeletedTime.HasValue)
 				.OrderByDescending(c => c.CreatedTime);
+
+			//Lọc theo ID nếu ID có giá trị
+			if (id.HasValue)
+			{
+				categories = categories.Where(c => c.Id == id.Value);
+			}
 
 			//Sắp xếp theo Name
 			if (sortByName.HasValue)
@@ -41,26 +49,18 @@ namespace XuongMay.Services.Service
 					: categories.OrderByDescending(c => c.Name);
 			}
 
-			// Trả về list các Category đã sắp xếp dưới dạng AllCategoryModel
-			return categories
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalCategory = categories.Count();
+
+			//Áp dụng phân trang
+			List<AllCategoryModel> pageCategory = categories
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
 				.ProjectTo<AllCategoryModel>(_mapper.ConfigurationProvider)
-				.ToList();
-		}
+				.ToList(); ;
 
-		public AllCategoryModel GetCategoryById(int id)
-		{
-			// Tìm Category theo Id, nếu không tìm thấy thì hiển thị thông báo
-			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
-				?? throw new Exception("Danh mục không tồn tại");
-
-			// Nếu Category bị xóa, hiển thị thông báo
-			if (category.DeletedTime.HasValue)
-			{
-				throw new Exception("Không tìm thấy danh mục");
-			}
-
-			// Trả về thông tin category vừa được thêm dưới AllCategoryModelView
-			return _mapper.Map<AllCategoryModel>(category);
+			// Tạo BasePaginatedList và trả về
+			return new BasePaginatedList<AllCategoryModel>(pageCategory, totalCategory, pageNumber, pageSize);
 		}
 
 		public AllCategoryModel Add(AddCategoryModel model)
@@ -72,20 +72,19 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category đã tồn tại hay chưa
-			var existingCategory = _unitOfWork.GetRepository<Category>()
+			Category? existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.IsDeleted);
+									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
 
 			if (existingCategory != null)
 			{
 				throw new Exception($"Danh mục '{model.Name}' đã tồn tại.");
 			}
 
-			var newCategory = _mapper.Map<Category>(model);
+			Category newCategory = _mapper.Map<Category>(model);
 			newCategory.CreatedTime = CoreHelper.SystemTimeNows;
 			newCategory.LastUpdatedTime = null;
 			newCategory.DeletedTime = null;
-			newCategory.IsDeleted = false;
 
 			// Lưu category vào database
 			_unitOfWork.GetRepository<Category>().Insert(newCategory);
@@ -98,7 +97,7 @@ namespace XuongMay.Services.Service
 		public void Update(int id, AddCategoryModel model)
 		{
 			//Check category có tồn tại không
-			var category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			//Check category có bị xóa chưa
@@ -114,9 +113,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category có bị trùng tên không?
-			var existingCategory = _unitOfWork.GetRepository<Category>()
+			Category? existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.IsDeleted);
+									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue && c.Id != id);
 
 			if (existingCategory != null)
 			{
@@ -134,7 +133,7 @@ namespace XuongMay.Services.Service
 		public void Delete(int id)
 		{
 			//Check category có tồn tại không
-			var category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			if(category.DeletedTime.HasValue)

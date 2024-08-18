@@ -1,11 +1,12 @@
 ﻿using System;
+using XuongMay.Core;
 using XuongMay.ModelViews.OrderModelViews;
 
 namespace XuongMay.Contract.Services.Interface
 {
 	public interface IOrderService
 	{
-		List<AllOrderModelView> GetAllOrder(string searchByProductName);
+		BasePaginatedList<AllOrderModelView> GetAllOrder(string searchByProductName, int pageNumber, int pageSize);
 
 		AllOrderModelView AddOrder(AddOrderModelView model);
 

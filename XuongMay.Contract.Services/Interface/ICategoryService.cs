@@ -1,12 +1,11 @@
-﻿using XuongMay.ModelViews.CategoryModels;
+﻿using XuongMay.Core;
+using XuongMay.ModelViews.CategoryModels;
 
 namespace XuongMay.Contract.Services.Interface
 {
 	public interface ICategoryService
 	{
-		List<AllCategoryModel> GetAllCategory(bool? sortByName);
-
-		AllCategoryModel GetCategoryById(int id);
+		BasePaginatedList<AllCategoryModel> GetAllCategory(int? id, bool? sortByName, int pageNumber, int pageSize);
 
 		AllCategoryModel Add(AddCategoryModel model);
 

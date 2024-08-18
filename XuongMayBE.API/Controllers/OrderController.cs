@@ -24,11 +24,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="searcProductName"></param>
 		/// <returns></returns>
 		[HttpGet("all_order")]
-		public IActionResult GetAllOrder(string? searcProductName)
+		public IActionResult GetAllOrder(string? searcProductName, int pageNumber = 1, int pageSize = 3)
 		{
 			try
 			{
-				var result = _orderService.GetAllOrder(searcProductName);
+				var result = _orderService.GetAllOrder(searcProductName, pageNumber, pageSize);
 				return Ok(result);
 			}
 			catch (Exception ex)

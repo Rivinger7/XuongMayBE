@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AssemblyLineModelView;
 using XuongMay.ModelViews.AssemblyLineModelViews;
+using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -23,7 +25,7 @@ namespace XuongMay.Services.Service
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<IEnumerable<AssemblyLineModelView>> GetAllAssemblyLineAsync()
+        public async Task<BasePaginatedList<AssemblyLineModelView>> GetAllAssemblyLineAsync(int pageNumber, int pageSize)
         {
             // Retrieve all assembly lines from the repository
             IEnumerable<AssemblyLine> retrieveAssemblyLines = await _unitOfWork.GetRepository<AssemblyLine>().Entities.Where(al => !al.IsDeleted).ToListAsync();
@@ -34,10 +36,18 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException("No assembly lines found");
             }
 
-            // Map the Assembly line entities to AssemblyLineModelView
-            IEnumerable<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IEnumerable<AssemblyLine>, IEnumerable<AssemblyLineModelView>>(retrieveAssemblyLines);
+            // Get the total number of assembly lines
+            int totalAssemblyLines = retrieveAssemblyLines.Count();
 
-            return assemblyLineModel;
+            // Pagination
+            IReadOnlyCollection<AssemblyLine> paginatedassemblyLine = retrieveAssemblyLines.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            IReadOnlyCollection<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineModelView>>(paginatedassemblyLine);
+
+            // Create the paginated list
+            BasePaginatedList<AssemblyLineModelView> paginatedList = new (assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
         public async Task<AssemblyLineModelView> GetAssemblyLineByIDAsync(int id)
@@ -68,7 +78,7 @@ namespace XuongMay.Services.Service
             return assemblyLineModel;
         }
 
-        public async Task<IEnumerable<AssemblyLineModelView>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? description)
+        public async Task<BasePaginatedList<AssemblyLineModelView>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? description, int pageNumber, int pageSize)
         {
             // Start with a base query to retrieve assembly line that have not been soft deleted
             IQueryable<AssemblyLine> query = _unitOfWork.GetRepository<AssemblyLine>().Entities.Where(al => !al.IsDeleted);
@@ -87,19 +97,28 @@ namespace XuongMay.Services.Service
             // Retrieve the filtered list of assembly line
             IEnumerable<AssemblyLine> retrieveAssemblyLines = await query.ToListAsync();
 
-            // Verify if the list of retrieved assembly line is empty
-            if (!retrieveAssemblyLines.Any())
+            // Get the total number of assembly lines that match the criteria
+            int totalAssemblyLines = await query.CountAsync();
+
+            // Verify if the total number of assembly lines is zero
+            if (totalAssemblyLines == 0)
             {
                 throw new ArgumentException("No assembly lines found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<AssemblyLineModelView> assemblyLinesModel = _mapper.Map<IEnumerable<AssemblyLine>, IEnumerable<AssemblyLineModelView>>(retrieveAssemblyLines);
+            // Pagination
+            IReadOnlyCollection<AssemblyLine> paginatedAssemblyLine = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            return assemblyLinesModel;
+            // Map the User entities to UserResponseModel
+            IReadOnlyCollection<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineModelView>>(paginatedAssemblyLine);
+
+            // Create the paginated list
+            BasePaginatedList<AssemblyLineModelView> paginatedList = new(assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
-        public async Task<IEnumerable<AssemblyLineModelView>> GetAssemblyLinesByCreatorAsync(string creator)
+        public async Task<BasePaginatedList<AssemblyLineModelView>> GetAssemblyLinesByCreatorAsync(string creator, int pageNumber, int pageSize)
         {
             // Retrieve all assembly lines from the repository
             IEnumerable<AssemblyLine> retrieveAssemblyLines = await _unitOfWork.GetRepository<AssemblyLine>().Entities.Where(al => !al.IsDeleted && al.CreatedBy.ToLower().Contains(creator.ToLower())).ToListAsync();
@@ -108,10 +127,18 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException($"List of assembly line with Creator full name {creator} not found");
             }
 
-            // Map the User entities to UserResponseModel
-            IEnumerable<AssemblyLineModelView> assemblyLinesModel = _mapper.Map<IEnumerable<AssemblyLine>, IEnumerable<AssemblyLineModelView>>(retrieveAssemblyLines);
+            // Get the total number of assembly lines
+            int totalAssemblyLines = retrieveAssemblyLines.Count();
 
-            return assemblyLinesModel;
+            // Pagination
+            IReadOnlyCollection<AssemblyLine> paginatedassemblyLine = retrieveAssemblyLines.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            IReadOnlyCollection<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineModelView>>(paginatedassemblyLine);
+
+            // Create the paginated list
+            BasePaginatedList<AssemblyLineModelView> paginatedList = new(assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
+
+            return paginatedList;
         }
 
         public async Task CreateAssemblyLineAsync(AssemblyLineCreateModel assemblyLineModel)

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.ModelViews.ProductModelViews;
 
 namespace XuongMayBE.API.Controllers
@@ -22,11 +23,11 @@ namespace XuongMayBE.API.Controllers
 		/// Lấy toàn bộ sản phẩm, kể cả những cái đã xóa
 		/// </summary>
 		[HttpGet("all_products")]
-		public async Task<IActionResult> GetAllProducts()
+		public async Task<IActionResult> GetAllProducts(int pageNumber = 1, int pageSize = 3)
 		{
 			try
 			{
-				IEnumerable<ResponseProductModel> result = await _productService.GetAsync();
+				BasePaginatedList<ResponseProductModel> result = await _productService.GetAsync(pageNumber, pageSize);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -41,11 +42,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
 		[HttpGet("exist_products")]
-		public async Task<IActionResult> GetExistProducts(bool? sortByName)
+		public async Task<IActionResult> GetExistProducts(int pageNumber = 1, int pageSize = 3, bool? sortByName = null)
 		{
 			try
 			{
-				IEnumerable<ResponseProductModel> result = await _productService.GetProductsAsync(sortByName);
+				BasePaginatedList<ResponseProductModel> result = await _productService.GetProductsAsync(pageNumber, pageSize, sortByName);
 				return Ok(result);
 			}
 			catch (Exception ex)
