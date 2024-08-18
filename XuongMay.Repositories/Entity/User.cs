@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace GarmentFactory.Repository.Entities
 {
@@ -18,6 +19,7 @@ namespace GarmentFactory.Repository.Entities
 		public DateTime? RefreshTokenExpiryTime { get; set; }
 
 		#region entity Mapping
+		[JsonIgnore]
 		public virtual AssemblyLine AssemblyLine { get; set; }
 		#endregion
 	}

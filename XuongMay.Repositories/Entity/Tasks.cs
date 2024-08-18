@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GarmentFactory.Repository.Entities
@@ -22,7 +23,9 @@ namespace GarmentFactory.Repository.Entities
 		public bool IsDeleted { get; set; } = false;
 
 		#region entity Mapping
+		[JsonIgnore]
 		public virtual AssemblyLine AssemblyLine { get; set; }
+		[JsonIgnore]
 		public virtual Order Order { get; set; }
 		#endregion
 	}

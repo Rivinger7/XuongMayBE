@@ -1,4 +1,6 @@
-﻿namespace GarmentFactory.Repository.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace GarmentFactory.Repository.Entities
 {
 	public class Order
 	{
@@ -14,6 +16,7 @@
 
 		#region entity Mapping
 		public virtual ICollection<Tasks>? Tasks { get; set; }
+		[JsonIgnore]
 		public virtual Product Product { get; set; }
 		#endregion
 	}

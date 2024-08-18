@@ -43,7 +43,6 @@ namespace XuongMay.Services.Service
             // Store user id in Session
             //_httpContextAccessor.HttpContext.Session.SetString("UserID", retrieveUser.Id.ToString());
 
-
             // Map the User entities to UserResponseModel
             UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(retrieveUser);
 

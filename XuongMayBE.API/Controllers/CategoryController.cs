@@ -6,7 +6,7 @@ using XuongMay.ModelViews.CategoryModels;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [Route("api/[controller]")]
 	[ApiController]
 	public class CategoryController : ControllerBase
