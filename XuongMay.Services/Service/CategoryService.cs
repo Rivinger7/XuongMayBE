@@ -127,7 +127,14 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check còn Product trong Category không? Nếu còn, thì ko thể xóa
-			//Code sau
+			bool product = _unitOfWork.GetRepository<Product>()
+				.Entities
+				.Any(p => p.CategoryId == id && !p.DeletedTime.HasValue);
+			
+			if(product)
+			{
+				throw new Exception("Không thể xóa vì vẫn còn sản phẩm trong danh mục này");
+			}
 
 			//Xóa mềm
 			category.DeletedTime = CoreHelper.SystemTimeNows;

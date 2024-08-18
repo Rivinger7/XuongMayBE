@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XuongMay.ModelViews.CategoryModels;
+﻿using XuongMay.ModelViews.CategoryModels;
 
 namespace XuongMay.Contract.Services.Interface
 {
