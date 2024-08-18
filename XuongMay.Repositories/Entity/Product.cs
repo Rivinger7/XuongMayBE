@@ -17,7 +17,7 @@ namespace GarmentFactory.Repository.Entities
 		public DateTime CreatedTime { get; set; }
 		public DateTime? LastUpdateTime { get; set;}
 		public DateTime? DeletedTime { get; set; }
-		public bool IsDeleted { get; set; }
+		public bool IsDeleted { get; set; } = false;
 
 		#region entity Mapping
 		public virtual ICollection<Order>? Orders { get; set; }
