@@ -72,7 +72,7 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category đã tồn tại hay chưa
-			var existingCategory = _unitOfWork.GetRepository<Category>()
+			Category? existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
 									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
 
@@ -81,7 +81,7 @@ namespace XuongMay.Services.Service
 				throw new Exception($"Danh mục '{model.Name}' đã tồn tại.");
 			}
 
-			var newCategory = _mapper.Map<Category>(model);
+			Category newCategory = _mapper.Map<Category>(model);
 			newCategory.CreatedTime = CoreHelper.SystemTimeNows;
 			newCategory.LastUpdatedTime = null;
 			newCategory.DeletedTime = null;
@@ -97,7 +97,7 @@ namespace XuongMay.Services.Service
 		public void Update(int id, AddCategoryModel model)
 		{
 			//Check category có tồn tại không
-			var category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			//Check category có bị xóa chưa
@@ -113,9 +113,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category có bị trùng tên không?
-			var existingCategory = _unitOfWork.GetRepository<Category>()
+			Category? existingCategory = _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
+									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue && c.Id != id);
 
 			if (existingCategory != null)
 			{
@@ -133,7 +133,7 @@ namespace XuongMay.Services.Service
 		public void Delete(int id)
 		{
 			//Check category có tồn tại không
-			var category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			if(category.DeletedTime.HasValue)
