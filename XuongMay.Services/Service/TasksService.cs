@@ -31,10 +31,10 @@ namespace XuongMay.Services.Service
 			IList<Tasks> taskList = await _unitOfWork.GetRepository<Tasks>().GetAllAsync();
 
 			//check weather taskList exist or not
-			if (!taskList.Any())
+			if (!taskList.Where(t => t.DeletedTime == null).Any())
 			{
 				throw new ErrorException(StatusCodes.Status404NotFound,
-										new ErrorDetail() { ErrorMessage = "No Task is stored database" });
+										new ErrorDetail() { ErrorMessage = "No Task is stored in database" });
 			}
 			return taskList;
 
@@ -45,6 +45,12 @@ namespace XuongMay.Services.Service
 			Tasks task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId)
 								?? throw new ErrorException(StatusCodes.Status404NotFound,
 															new ErrorDetail() { ErrorMessage = "Can not find any Task by this Id!" });
+
+			if(task.DeletedTime != null)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+															new ErrorDetail() { ErrorMessage = "Can not find any Task by this Id!" });
+			}
 
 			return task;
 		}
@@ -72,6 +78,11 @@ namespace XuongMay.Services.Service
 			var task = _unitOfWork.GetRepository<Tasks>().GetById(taskId)
 														?? throw new ErrorException(StatusCodes.Status404NotFound,
 														new ErrorDetail () { ErrorMessage = "Can not find Task by this Id!"});
+			if(task.DeletedTime != null)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+														new ErrorDetail() { ErrorMessage = "This task is not exist!" });
+			}
 			//set deleted time is now
 			task.DeletedTime = CoreHelper.SystemTimeNows;
 			//set atatus deleted be true
