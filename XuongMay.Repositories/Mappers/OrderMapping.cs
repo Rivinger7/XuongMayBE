@@ -23,6 +23,8 @@ namespace XuongMay.Repositories.Mappers
 			CreateMap<AddOrderModelView, Order>()
 				.ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
 				.ForMember(dest => dest.LastUpdatedTime, opt => opt.Ignore())
+				.ForMember(dest => dest.StartTime, opt => opt.Ignore())
+				.ForMember(dest => dest.EndTime, opt => opt.Ignore())
 				.ForMember(dest => dest.DeletedTime, opt => opt.Ignore());
 
 			//Ánh xạ từ AddOrderModelView sang AllOrderModelView
@@ -37,8 +39,8 @@ namespace XuongMay.Repositories.Mappers
 			CreateMap<UpdateOrderModelView, Order>()
 			.ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
 			.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
-			.ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
-			.ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+			.ForMember(dest => dest.StartTime, opt => opt.Ignore())
+			.ForMember(dest => dest.EndTime, opt => opt.Ignore())
 			.ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
 			.ForMember(dest => dest.LastUpdatedTime, opt => opt.Ignore())
 			.ForMember(dest => dest.DeletedTime, opt => opt.Ignore());

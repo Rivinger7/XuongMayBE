@@ -47,9 +47,15 @@ namespace XuongMay.Services.Service
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0.");
 			}
-
+			//Check StartTime & EndTime không được để trống 
+			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
+			{
+				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+			}
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
 			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
-			if (model.StartTime >= model.EndTime)
+			if (startTime >= endTime)
 			{
 				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
 			}
@@ -63,6 +69,8 @@ namespace XuongMay.Services.Service
 			//Tạo đơn hàng mới
 			Order newOrder = _mapper.Map<Order>(model);
 			newOrder.ProductId = model.ProductId;
+			newOrder.StartTime = startTime;
+			newOrder.EndTime = endTime;
 			newOrder.CreatedTime = CoreHelper.SystemTimeNows;
 			newOrder.LastUpdatedTime = null;
 			newOrder.DeletedTime = null;
@@ -81,12 +89,6 @@ namespace XuongMay.Services.Service
 			if(model.Quantity <= 0)
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0");
-			}
-
-			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
-			if(model.StartTime >= model.EndTime)
-			{
-				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
 			}
 
 			//Check đơn hàng đó có tồn tại không
@@ -115,9 +117,24 @@ namespace XuongMay.Services.Service
 				throw new Exception("Không thể thay đổi sản phẩm vì đơn hàng đã có nhiệm vụ được giao.");
 			}
 
+			//Check StartTime & EndTime không được để trống 
+			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
+			{
+				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+			}
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			//Check thời gian bắt đầu phải nhỏ hơn thời gian kết thúc
+			if (startTime >= endTime)
+			{
+				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
+			}
+
 			//Cập nhật và lưu đơn hàng
 			_mapper.Map(model, order);
 			order.LastUpdatedTime = CoreHelper.SystemTimeNows;
+			order.StartTime = startTime;
+			order.EndTime = endTime;
 
 			_unitOfWork.GetRepository<Order>().Update(order);
 			_unitOfWork.Save();

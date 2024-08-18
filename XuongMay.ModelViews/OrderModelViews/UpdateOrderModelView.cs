@@ -6,8 +6,8 @@
 
 		public int ProductId { get; set; }
 
-		public DateTime StartTime { get; set; }
+		public string StartTime { get; set; }
 
-		public DateTime EndTime { get; set; }
+		public string EndTime { get; set; }
 	}
 }
