@@ -8,8 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.CategoryModels;
+using XuongMay.ModelViews.OrderModelViews;
 using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMay.Services.Service
@@ -25,13 +27,19 @@ namespace XuongMay.Services.Service
 			_unitOfWork = unitOfWork;
 		}
 
-		public List<AllCategoryModel> GetAllCategory(bool? sortByName)
+		public BasePaginatedList<AllCategoryModel> GetAllCategory(int? id, bool? sortByName, int pageNumber, int pageSize)
 		{
 			//Lấy tất cả các Category chưa bị xóa và sắp xếp theo CreaTime mới nhất
 			IQueryable<Category> categories = _unitOfWork.GetRepository<Category>()
 				.Entities
 				.Where(c => !c.DeletedTime.HasValue)
 				.OrderByDescending(c => c.CreatedTime);
+
+			//Lọc theo ID nếu ID có giá trị
+			if (id.HasValue)
+			{
+				categories = categories.Where(c => c.Id == id.Value);
+			}
 
 			//Sắp xếp theo Name
 			if (sortByName.HasValue)
@@ -41,26 +49,18 @@ namespace XuongMay.Services.Service
 					: categories.OrderByDescending(c => c.Name);
 			}
 
-			// Trả về list các Category đã sắp xếp dưới dạng AllCategoryModel
-			return categories
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalCategory = categories.Count();
+
+			//Áp dụng phân trang
+			List<AllCategoryModel> pageCategory = categories
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
 				.ProjectTo<AllCategoryModel>(_mapper.ConfigurationProvider)
-				.ToList();
-		}
+				.ToList(); ;
 
-		public AllCategoryModel GetCategoryById(int id)
-		{
-			// Tìm Category theo Id, nếu không tìm thấy thì hiển thị thông báo
-			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
-				?? throw new Exception("Danh mục không tồn tại");
-
-			// Nếu Category bị xóa, hiển thị thông báo
-			if (category.DeletedTime.HasValue)
-			{
-				throw new Exception("Không tìm thấy danh mục");
-			}
-
-			// Trả về thông tin category vừa được thêm dưới AllCategoryModelView
-			return _mapper.Map<AllCategoryModel>(category);
+			// Tạo BasePaginatedList và trả về
+			return new BasePaginatedList<AllCategoryModel>(pageCategory, totalCategory, pageNumber, pageSize);
 		}
 
 		public AllCategoryModel Add(AddCategoryModel model)

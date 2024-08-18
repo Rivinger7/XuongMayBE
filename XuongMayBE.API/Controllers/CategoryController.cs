@@ -24,30 +24,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
 		[HttpGet("all_category")]
-		public IActionResult GetAllCategory(bool? sortByName)
+		public IActionResult GetAllCategory(int? id, bool? sortByName, int pageNumber = 1, int pageSize = 3)
 		{
 			try
 			{
-				var result = _categoryService.GetAllCategory(sortByName);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
-		/// <summary>
-		/// Lấy toàn bộ danh mục bằng id
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		[HttpGet("/api/ignored/{id}")]
-		public IActionResult GetCategoryById(int id)
-		{
-			try
-			{
-				var result = _categoryService.GetCategoryById(id);
+				var result = _categoryService.GetAllCategory(id, sortByName, pageNumber, pageSize);
 				return Ok(result);
 			}
 			catch (Exception ex)

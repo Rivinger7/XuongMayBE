@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using GarmentFactory.Repository.Entities;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.OrderModelViews;
 
@@ -19,7 +20,7 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 		}
 
-		public List<AllOrderModelView> GetAllOrder(string searchByProductName)
+		public BasePaginatedList<AllOrderModelView> GetAllOrder(string searchByProductName, int pageNumber, int pageSize)
 		{
 			//Tạo câu truy vấn IQueryable để lấy dữ liệu từ bảng Order trong database
 			//Lấy tất cả Order chưa bị xóa sắp xếp theo CreaTime mới nhất
@@ -34,10 +35,18 @@ namespace XuongMay.Services.Service
 				orders = orders.Where(o => o.Product.Name.Contains(searchByProductName));
 			}
 
-			// Trả về danh sách các đơn hàng dưới dạng AllOrderModelView
-			return orders
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalOrders = orders.Count();
+
+			// Áp dụng phân trang
+			List<AllOrderModelView> pagedOrders = orders
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
 				.ProjectTo<AllOrderModelView>(_mapper.ConfigurationProvider)
 				.ToList();
+
+			// Tạo BasePaginatedList và trả về
+			return new BasePaginatedList<AllOrderModelView>(pagedOrders, totalOrders, pageNumber, pageSize);
 		}
 
 		public AllOrderModelView AddOrder(AddOrderModelView model)
