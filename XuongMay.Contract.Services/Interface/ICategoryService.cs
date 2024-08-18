@@ -6,6 +6,8 @@ namespace XuongMay.Contract.Services.Interface
 	{
 		List<AllCategoryModel> GetAllCategory(bool? sortByName);
 
+		AllCategoryModel GetCategoryById(int id);
+
 		AllCategoryModel Add(AddCategoryModel model);
 
 		void Update(int id, AddCategoryModel model);

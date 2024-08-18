@@ -23,7 +23,7 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="searcProductName"></param>
 		/// <returns></returns>
-		[HttpGet]
+		[HttpGet("all_order")]
 		public IActionResult GetAllOrder(string? searcProductName)
 		{
 			try
@@ -42,7 +42,7 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="model"></param>
 		/// <returns></returns>
-		[HttpPost]
+		[HttpPost("create")]
 		public IActionResult AddOrder(AddOrderModelView model)
 		{
 			try
@@ -62,7 +62,7 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="id"></param>
 		/// <param name="model"></param>
 		/// <returns></returns>
-		[HttpPut]
+		[HttpPut("update")]
 		public IActionResult UpdateOrder(int id, UpdateOrderModelView model)
 		{
 			try
@@ -76,7 +76,7 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
-		[HttpDelete]
+		[HttpDelete("delete")]
 		public IActionResult DeleteOrder(int id)
 		{
 			try

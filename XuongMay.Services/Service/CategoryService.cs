@@ -47,6 +47,22 @@ namespace XuongMay.Services.Service
 				.ToList();
 		}
 
+		public AllCategoryModel GetCategoryById(int id)
+		{
+			// Tìm Category theo Id, nếu không tìm thấy thì hiển thị thông báo
+			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
+				?? throw new Exception("Danh mục không tồn tại");
+
+			// Nếu Category bị xóa, hiển thị thông báo
+			if (category.DeletedTime.HasValue)
+			{
+				throw new Exception("Không tìm thấy danh mục");
+			}
+
+			// Trả về thông tin category vừa được thêm dưới AllCategoryModelView
+			return _mapper.Map<AllCategoryModel>(category);
+		}
+
 		public AllCategoryModel Add(AddCategoryModel model)
 		{
 			//Check tên không được để trống

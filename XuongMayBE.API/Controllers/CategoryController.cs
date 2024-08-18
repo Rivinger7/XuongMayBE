@@ -23,7 +23,7 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
-		[HttpGet]
+		[HttpGet("all_category")]
 		public IActionResult GetAllCategory(bool? sortByName)
 		{
 			try
@@ -38,9 +38,28 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
+		/// Lấy toàn bộ danh mục bằng id
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		[HttpGet("/api/ignored/{id}")]
+		public IActionResult GetCategoryById(int id)
+		{
+			try
+			{
+				var result = _categoryService.GetCategoryById(id);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
+		/// <summary>
 		/// Thêm danh mục mới
 		/// </summary>
-		[HttpPost]
+		[HttpPost("create")]
 		public IActionResult Add(AddCategoryModel model)
 		{
 			try
@@ -60,8 +79,7 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="id"></param>
 		/// <param name="model"></param>
 		/// <returns></returns>
-		[HttpPut]
-		[Route("/api/[controller]/{id}")]
+		[HttpPut("update/{id}")]
 		public IActionResult Update(int id, AddCategoryModel model)
 		{
 			try
@@ -80,7 +98,7 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		[HttpDelete]
+		[HttpDelete("delete")]
 		public IActionResult Delete(int id)
 		{
 			try
