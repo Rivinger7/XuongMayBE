@@ -55,6 +55,8 @@ namespace XuongMayBE.API
 
             services.AddScoped<ICategoryService, CategoryService>();
 
+			services.AddScoped<IOrderService, OrderService>();
+
 			services.AddScoped<UserRepository>();
 
             services.AddTransient<IJwtService, JwtService>();

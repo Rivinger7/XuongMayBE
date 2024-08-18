@@ -9,11 +9,13 @@ namespace XuongMay.Contract.Services.Interface
 {
 	public interface ICategoryService
 	{
-		List<AllCategoryModel> GetAllCategory(bool? sortByName);
+		List<AllCategoryModelView> GetAllCategory(bool? sortByName);
 
-		AllCategoryModel Add(AddCategoryModel model);
+		AllCategoryModelView GetCategoryById(int id);
 
-		void Update(int id, AddCategoryModel model);
+		AllCategoryModelView Add(AddCategoryModelView model);
+
+		void Update(int id, AddCategoryModelView model);
 
 		void Delete(int id);
 	}
