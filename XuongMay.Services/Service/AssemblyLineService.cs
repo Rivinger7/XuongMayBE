@@ -127,7 +127,7 @@ namespace XuongMay.Services.Service
                 throw new ArgumentException($"List of assembly line with Creator full name {creator} not found");
             }
 
-            // Get the total number of users
+            // Get the total number of assembly lines
             int totalAssemblyLines = retrieveAssemblyLines.Count();
 
             // Pagination
