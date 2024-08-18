@@ -148,13 +148,13 @@ namespace XuongMay.Services.Service
 			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
 
 			//Check id sản phẩm này có tồn tại trong Order ko -> nếu ko, xóa cứng
-			bool isExistInAnyOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.ProductId == id);
-			if (!isExistInAnyOrder)
-			{
-				_unitOfWork.GetRepository<Product>().Delete(id);
-				await _unitOfWork.SaveAsync();
-				return;
-			}
+			//bool isExistInAnyOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.ProductId == id);
+			//if (!isExistInAnyOrder)
+			//{
+			//	_unitOfWork.GetRepository<Product>().Delete(id);
+			//	await _unitOfWork.SaveAsync();
+			//	return;
+			//}
 
 			//Xóa mềm
 			product.DeletedTime = CoreHelper.SystemTimeNows;
