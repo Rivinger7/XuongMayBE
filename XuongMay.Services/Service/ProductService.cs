@@ -3,6 +3,7 @@ using GarmentFactory.Repository.Entities;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.ProductModelViews;
 
@@ -18,24 +19,53 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 		}
 		// Lấy danh sách mọi sản phẩm (cả những sản phẩm bị xóa)
-		public async Task<IEnumerable<ResponseProductModel>> GetAsync()
+		public async Task<BasePaginatedList<ResponseProductModel>> GetAsync(int pageNumber, int pageSize)
 		{
-			IEnumerable<Product> products = await _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).ToListAsync();
-			return _mapper.Map<IEnumerable<ResponseProductModel>>(products);
+			// Lấy danh sách mọi sản phẩm từ db
+			IQueryable<Product> productsQuery = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category);
+
+			// Tổng số phần tử
+			int totalCount = await productsQuery.CountAsync();
+
+			// Apply pagination
+			List<Product> paginatedProducts = await productsQuery
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.ToListAsync();
+
+			// Map the products to response models
+			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
+
+			// Create and return the paginated list
+			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
 		}
 
 		// Lấy danh sách các sản phẩm chưa bị xóa, sort nếu muốn
-		public async Task<IEnumerable<ResponseProductModel>> GetProductsAsync(bool? sortByName)
+		public async Task<BasePaginatedList<ResponseProductModel>> GetProductsAsync(int pageNumber, int pageSize, bool? sortByName)
 		{
-			IQueryable<Product> products = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).Where(p => !p.DeletedTime.HasValue).OrderByDescending(p => p.CreatedTime);
+			IQueryable<Product> productsQuery = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).Where(p => !p.DeletedTime.HasValue).OrderByDescending(p => p.CreatedTime);
 			// Sắp xếp theo Name 
 			if (sortByName.HasValue)
 			{
 				//nếu sortByName = true -> xếp tăng dần
 				//nếu sortByName = false -> xếp giảm dần
-				products = sortByName.Value ? products.OrderBy(p => p.Name) : products.OrderByDescending(p => p.Name);
+				productsQuery = sortByName.Value ? productsQuery.OrderBy(p => p.Name) : productsQuery.OrderByDescending(p => p.Name);
 			}
-			return _mapper.Map<IEnumerable<ResponseProductModel>>(await products.ToListAsync());
+
+			// Tổng số phần tử
+			int totalCount = await productsQuery.CountAsync();
+
+			// Apply pagination
+			List<Product> paginatedProducts = await productsQuery
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.ToListAsync();
+
+			// Map the products to response models
+			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
+
+			// Create and return the paginated list
+			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
 		}
 
 		// Tạo 1 product mới
