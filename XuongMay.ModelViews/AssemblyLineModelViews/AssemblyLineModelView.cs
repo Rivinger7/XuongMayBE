@@ -11,6 +11,7 @@ namespace XuongMay.ModelViews.AssemblyLineModelView
         public required int Id { get; set; }
         public required string Name { get; set; }
         public required int ManagerID { get; set; }
+        public required string ManagerFullName { get; set; }
         public required string Description { get; set; }
         public required int NumberOfStaffs { get; set; }
         public required string CreatedBy { get; set; }

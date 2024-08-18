@@ -1,9 +1,6 @@
-﻿using GarmentFactory.Repository.Context;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using XuongMay.Contract.Services.Interface;
-using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
 
 namespace XuongMayBE.API.Controllers
@@ -12,17 +9,20 @@ namespace XuongMayBE.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly GarmentFactoryDBContext _context;
         private readonly IAuthencationService _authencationService;
         private readonly IJwtService _jwtService;
 
-        public AuthController(GarmentFactoryDBContext context, IAuthencationService authencationService,IJwtService jwtService)
+        public AuthController(IAuthencationService authencationService, IJwtService jwtService)
         {
-            _context = context;
             _authencationService = authencationService;
-			_jwtService = jwtService;
+            _jwtService = jwtService;
         }
 
+        /// <summary>
+        /// Authenticates a user based on their login credentials
+        /// </summary>
+        /// <param name="loginModel"></param>
+        /// <returns>An access token and a refresh token if authentication is successful</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModelView loginModel)
         {
@@ -31,19 +31,19 @@ namespace XuongMayBE.API.Controllers
                 var user = await _authencationService.AuthenticateUserAsync(loginModel);
 
                 var claims = new List<Claim>
-				{
-					new Claim(ClaimTypes.Name, user.Id.ToString()),
-					new Claim(ClaimTypes.Role, user.Role)
-				};                
+                {
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role)
+                };
 
                 //Call method to generate access token
                 _jwtService.GenerateAccessToken(claims, user.Id, out string accessToken, out string refreshToken);
 
                 return Ok(new AuthenticatedResponseModelView
-                        {  
-                            AccessToken = accessToken,
-							RefreshToken = refreshToken
-                        }
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken
+                }
                 );
             }
             catch (ArgumentException aex)
@@ -57,6 +57,11 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Registers a new user account (Manager)
+        /// </summary>
+        /// <param name="registerModel"></param>
+        /// <returns>A confirmation message indicating successful account creation</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModelView registerModel)
         {

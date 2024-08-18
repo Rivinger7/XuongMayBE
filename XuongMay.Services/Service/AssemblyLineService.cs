@@ -59,6 +59,7 @@ namespace XuongMay.Services.Service
             // Check ID if the ID is less than 1 throw ArgumentException
             CheckInvalidID(managerID);
 
+            // Retrieve assembly line form the repository
             AssemblyLine retrieveAssemblyLine = await _unitOfWork.GetRepository<AssemblyLine>().Entities.FirstOrDefaultAsync(manager => manager.ManagerId == managerID) ?? throw new ArgumentException($"Assembly line with Manager ID {managerID} not found");
 
             // Map the Assembly line entities to AssemblyLineModelView
@@ -163,7 +164,7 @@ namespace XuongMay.Services.Service
             //}
 
             // Parse and Assign value
-            //int adminID = Int32.Parse(userID);
+            //int adminID = Int32.Parse(userID); // Should add try catch here
 
             // Retrieve admin from the repository
             //User admin = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(user => user.Id == adminID) ?? throw new ArgumentException("User not found");

@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.AssemblyLineModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [Route("api/assembly-lines")]
     [ApiController]
     public class AssemblyLineController : ControllerBase

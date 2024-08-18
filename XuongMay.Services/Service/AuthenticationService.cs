@@ -37,9 +37,11 @@ namespace XuongMay.Services.Service
             {
                 throw new ArgumentException("Username or Password is incorrect");
             }
+            
+            // JWT
 
             // Store user id in Session
-            _httpContextAccessor.HttpContext.Session.SetString("UserID", retrieveUser.Id.ToString());
+            //_httpContextAccessor.HttpContext.Session.SetString("UserID", retrieveUser.Id.ToString());
 
             // Map the User entities to UserResponseModel
             UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(retrieveUser);
@@ -64,13 +66,12 @@ namespace XuongMay.Services.Service
             // Hash Password
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
+            // Check if the user exists
             bool isExistingUser = await _unitOfWork.GetRepository<User>().Entities.AnyAsync(user => user.Username == username);
             if (isExistingUser)
             {
                 throw new ArgumentException("Username already exists");
             }
-
-            // JWT
 
             // New User Object
             User newUser = new()

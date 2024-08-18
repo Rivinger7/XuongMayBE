@@ -5,7 +5,6 @@ using XuongMay.Contract.Services.Interface;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
     [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -24,6 +23,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if there is an issue with the request or if no managers are found
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("active")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -52,6 +52,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if there is an issue with the request or if no managers are found
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("admin")]
         public async Task<IActionResult> GetAllAdmins()
         {
@@ -80,6 +81,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if there is an issue with the request or if no managers are found
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("manager")]
         public async Task<IActionResult> GetAllManagers()
         {
@@ -109,6 +111,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if the provided id is invalid or the user does not exist
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetUserByID(int id)
         {
@@ -138,6 +141,7 @@ namespace XuongMayBE.API.Controllers
         /// An IActionResult containing a list of users that match the specified criteria
         /// Returns a BadRequest if the input parameters are invalid, or an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("search")]
         public async Task<IActionResult> SearchUsers([FromQuery] string? username = null, [FromQuery] string? fullName = null, [FromQuery] string? role = null)
         {
@@ -169,6 +173,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if the provided input is invalid or the password change fails
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager,Admin")]
         [HttpPut("password")]
         public async Task<IActionResult> ChangePassword(int id, string newPassword, string newConfirmPassword)
         {
@@ -200,6 +205,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if the provided input is invalid or the full name change fails
         /// Returns an Internal Server Error if an unexpected error occurs
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager,Admin")]
         [HttpPut("full-name")]
         public async Task<IActionResult> ChangeFullName(int id, string newFullName)
         {
@@ -230,6 +236,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if the provided id is invalid or the user could not be found.
         /// Returns an Internal Server Error if an unexpected error occurs. 
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteUserByID(int id)
         {
@@ -260,6 +267,7 @@ namespace XuongMayBE.API.Controllers
         /// Returns a BadRequest if the provided username is invalid or the user could not be found.
         /// Returns an Internal Server Error if an unexpected error occurs. 
         /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{username}")]
         public async Task<IActionResult> DeleteUserByUsername(string username)
         {

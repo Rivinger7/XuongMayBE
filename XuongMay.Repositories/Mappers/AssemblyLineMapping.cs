@@ -8,7 +8,9 @@ namespace XuongMay.Repositories.Mappers
     {
         public AssemblyLineMapping()
         {
-            CreateMap<AssemblyLine, AssemblyLineModelView>().ReverseMap();
+            CreateMap<AssemblyLine, AssemblyLineModelView>()
+                .ForMember(dest => dest.ManagerFullName, opt => opt.MapFrom(src => src.User.FullName)) // Map User.FullName to ManagerFullName
+                .ReverseMap();
         }
 
     }
