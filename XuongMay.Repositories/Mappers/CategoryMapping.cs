@@ -9,7 +9,9 @@ namespace Dental_Clinic_System.Helper
 		public CategoryMapping() 
 		{
 			CreateMap<Category, AllCategoryModel>()
-				.ForMember(dest => dest.Description, opt => opt.AllowNull());
+				.ForMember(dest => dest.Description, opt => opt.AllowNull())
+				.ForMember(dest => dest.CreatedTime,
+				opt => opt.MapFrom(src => src.CreatedTime.ToString("HH:mm dd/MM/yyyy")));  // Format CreatedTime
 
 			CreateMap<AddCategoryModel, Category>()
 				.ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
