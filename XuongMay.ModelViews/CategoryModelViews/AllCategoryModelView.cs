@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace XuongMay.ModelViews.CategoryModels
 {
-	public class AllCategoryModel
+	public class AllCategoryModelView
 	{
 		public int Id { get; set; }
 		public string Name { get; set; } = string.Empty;
