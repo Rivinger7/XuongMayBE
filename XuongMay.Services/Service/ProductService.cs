@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using GarmentFactory.Repository.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Utils;
@@ -23,14 +18,14 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 		}
 		// Lấy danh sách mọi sản phẩm (cả những sản phẩm bị xóa)
-		public List<ResponseProductModel> Get()
+		public async Task<IEnumerable<ResponseProductModel>> GetAsync()
 		{
-			IEnumerable<Product> products = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category);
-			return _mapper.Map<List<ResponseProductModel>>(products.ToList());
+			IEnumerable<Product> products = await _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).ToListAsync();
+			return _mapper.Map<IEnumerable<ResponseProductModel>>(products);
 		}
 
 		// Lấy danh sách các sản phẩm chưa bị xóa, sort nếu muốn
-		public List<ResponseProductModel> GetProducts(bool? sortByName)
+		public async Task<IEnumerable<ResponseProductModel>> GetProductsAsync(bool? sortByName)
 		{
 			IQueryable<Product> products = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).Where(p => !p.DeletedTime.HasValue).OrderByDescending(p => p.CreatedTime);
 			// Sắp xếp theo Name 
@@ -40,11 +35,11 @@ namespace XuongMay.Services.Service
 				//nếu sortByName = false -> xếp giảm dần
 				products = sortByName.Value ? products.OrderBy(p => p.Name) : products.OrderByDescending(p => p.Name);
 			}
-			return _mapper.Map<List<ResponseProductModel>>(products.ToList());
+			return _mapper.Map<IEnumerable<ResponseProductModel>>(await products.ToListAsync());
 		}
 
 		// Tạo 1 product mới
-		public ResponseProductModel CreateProduct(CreateProductModel model)
+		public async Task<ResponseProductModel> CreateProductAsync(CreateProductModel model)
 		{
 			// Kiểm tra tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
@@ -56,27 +51,34 @@ namespace XuongMay.Services.Service
 			{
 				throw new Exception("Vui lòng chọn thể loại.");
 			}
-			// Kiểm tra sản phẩm đã tồn tại hay chưa
-			bool isExistProduct = _unitOfWork.GetRepository<Product>().Entities.Any(p => p.Name == model.Name && !p.DeletedTime.HasValue);
+            // Kiểm tra sản phẩm đã tồn tại hay chưa
+			var products = await _unitOfWork.GetRepository<Product>().Entities.ToListAsync();
+			bool isExistProduct = products.Any(p => p.Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase) && !p.DeletedTime.HasValue);
 			if (isExistProduct)
 			{
 				throw new Exception("Sản phẩm có tên " + model.Name + " đã tồn tại.");
 			}
+			// Kiểm tra categoryId phải tồn tại trong Category
+			bool isExistCategory = await _unitOfWork.GetRepository<Category>().Entities.AnyAsync(c => c.Id == model.CategoryId && !c.DeletedTime.HasValue);
+			if (!isExistCategory)
+			{
+				throw new Exception("Không tìm thấy thể loại có id " + model.CategoryId + " .");
+			}
 			// Lưu sản phẩm vào DB
-			var product = _mapper.Map<Product>(model);
-			product.CreatedTime = CoreHelper.SystemTimeNows;
-			product.IsDeleted = false;
-			_unitOfWork.GetRepository<Product>().Insert(product);
-			_unitOfWork.Save();
+			Product newProduct = _mapper.Map<Product>(model);
+			newProduct.CreatedTime = CoreHelper.SystemTimeNows;
+			newProduct.IsDeleted = false;
+			await _unitOfWork.GetRepository<Product>().InsertAsync(newProduct);
+			await _unitOfWork.SaveAsync();
 
-			product = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).FirstOrDefault(p => p.Name == model.Name);
+			Product? product = await _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).FirstOrDefaultAsync(p => p.Name == model.Name);
 			return _mapper.Map<ResponseProductModel>(product);
 		}
 		// Cập nhật 1 sản phẩm 
-		public void UpdateProduct(int id, CreateProductModel model)
+		public async Task<ResponseProductModel> UpdateProductAsync(int id, CreateProductModel model)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = _unitOfWork.GetRepository<Product>().Entities.FirstOrDefault(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
 
 			// Kiểm tra tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
@@ -89,36 +91,45 @@ namespace XuongMay.Services.Service
 				throw new Exception("Vui lòng chọn thể loại.");
 			}
 			// Kiểm tra tên mới của sản phẩm có bị trùng tên sản phẩm khác
-			bool isExistProductName = _unitOfWork.GetRepository<Product>().Entities.Any(p => p.Name == model.Name && !p.DeletedTime.HasValue && p.Id != id);
+			var products = await _unitOfWork.GetRepository<Product>().Entities.ToListAsync();
+			bool isExistProductName = products.Any(p => p.Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase) && !p.DeletedTime.HasValue && p.Id != id);
 			if (isExistProductName)
 			{
-				throw new Exception("Sản phẩm khác có tên" + model.Name + " đã tồn tại.");
+				throw new Exception("Sản phẩm khác có tên " + model.Name + " đã tồn tại.");
+			}
+			// Kiểm tra categoryId phải tồn tại trong Category
+			bool isExistCategory = await _unitOfWork.GetRepository<Category>().Entities.AnyAsync(c => c.Id == model.CategoryId && !c.DeletedTime.HasValue);
+			if (!isExistCategory)
+			{
+				throw new Exception("Không tìm thấy thể loại có id " + model.CategoryId + " .");
 			}
 			//Cập nhật và lưu sản phẩm vào db
 			_mapper.Map(model, product);
 			product.LastUpdateTime = CoreHelper.SystemTimeNows;
 			_unitOfWork.GetRepository<Product>().Update(product);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
+
+			return _mapper.Map<ResponseProductModel>(product);
 		}
 
-		public void DeleteProduct(int id)
+		public async Task DeleteProductAsync(int id)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = _unitOfWork.GetRepository<Product>().Entities.FirstOrDefault(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
 
 			//Check id sản phẩm này có tồn tại trong Order ko -> nếu ko, xóa cứng
-			bool isExistInAnyOrder = _unitOfWork.GetRepository<Order>().Entities.Any(o => o.ProductId == id);
-			if (isExistInAnyOrder == false)
+			bool isExistInAnyOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.ProductId == id);
+			if (!isExistInAnyOrder)
 			{
 				_unitOfWork.GetRepository<Product>().Delete(id);
-				_unitOfWork.Save();
+				await _unitOfWork.SaveAsync();
 				return;
 			}
 
 			//Xóa mềm
 			product.DeletedTime = CoreHelper.SystemTimeNows;
 			_unitOfWork.GetRepository<Product>().Update(product);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
 		}
 	} 
 }

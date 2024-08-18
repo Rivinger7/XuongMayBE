@@ -6,7 +6,7 @@ using XuongMay.ModelViews.ProductModelViews;
 
 namespace XuongMayBE.API.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [Route("api/[controller]")]
 	[ApiController]
 	public class ProductController : ControllerBase
@@ -22,11 +22,11 @@ namespace XuongMayBE.API.Controllers
 		/// Lấy toàn bộ sản phẩm, kể cả những cái đã xóa
 		/// </summary>
 		[HttpGet("all_products")]
-		public IActionResult GetAllProducts()
+		public async Task<IActionResult> GetAllProducts()
 		{
 			try
 			{
-				List<ResponseProductModel> result = _productService.Get();
+				IEnumerable<ResponseProductModel> result = await _productService.GetAsync();
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -41,11 +41,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
 		[HttpGet("exist_products")]
-		public IActionResult GetExistProducts(bool? sortByName)
+		public async Task<IActionResult> GetExistProducts(bool? sortByName)
 		{
 			try
 			{
-				List<ResponseProductModel> result = _productService.GetProducts(sortByName);
+				IEnumerable<ResponseProductModel> result = await _productService.GetProductsAsync(sortByName);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -58,11 +58,11 @@ namespace XuongMayBE.API.Controllers
 		/// Thêm sản phẩm mới
 		/// </summary>
 		[HttpPost("create")]
-		public IActionResult Add(CreateProductModel model)
+		public async Task<IActionResult> Add(CreateProductModel model)
 		{
 			try
 			{
-				ResponseProductModel result = _productService.CreateProduct(model);
+				ResponseProductModel result = await _productService.CreateProductAsync(model);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -77,14 +77,13 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="id"></param>
 		/// <param name="model"></param>
 		/// <returns></returns>
-		[HttpPut]
-		[Route("/api/[controller]/update/{id}")]
-		public IActionResult Update(int id, CreateProductModel model)
+		[HttpPut("update/{id}")]
+		public async Task<IActionResult> Update(int id, CreateProductModel model)
 		{
 			try
 			{
-				_productService.UpdateProduct(id, model);
-				return Ok();
+				ResponseProductModel result = await _productService.UpdateProductAsync(id, model);
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{
@@ -97,12 +96,12 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
-		[HttpDelete("Delete")]
-		public IActionResult Delete(int id)
+		[HttpDelete("delete")]
+		public async Task<IActionResult> Delete(int id)
 		{
 			try
 			{
-				_productService.DeleteProduct(id);
+				await _productService.DeleteProductAsync(id);
 				return Ok();
 			}
 			catch (Exception ex)

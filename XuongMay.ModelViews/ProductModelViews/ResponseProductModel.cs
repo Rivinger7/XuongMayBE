@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace XuongMay.ModelViews.ProductModelViews
 {
 	public class ResponseProductModel
@@ -12,8 +7,8 @@ namespace XuongMay.ModelViews.ProductModelViews
 		public string Name { get; set; }
 		public string? Description { get; set; }
 		public string Category { get; set; }
-		public DateTime CreatedTime { get; set; }
-		public DateTime? LastUpdateTime { get; set; }
-		public DateTime? DeletedTime { get; set; }
+		public string CreatedTime { get; set; }
+		public string? LastUpdateTime { get; set; }
+		public string? DeletedTime { get; set; }
 	}
 }

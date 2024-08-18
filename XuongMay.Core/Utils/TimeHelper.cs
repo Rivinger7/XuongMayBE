@@ -36,6 +36,16 @@
 			TimeZoneInfo utcPlus7 = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
 			return TimeZoneInfo.ConvertTimeFromUtc(dateTime.ToUniversalTime(), utcPlus7);
 		}
+		public static DateTime? ConvertStringToDateTime(string dateTimeString)
+		{
+			if (DateTime.TryParseExact(dateTimeString, "HH:mm dd/MM/yyyy",
+				System.Globalization.CultureInfo.InvariantCulture,
+				System.Globalization.DateTimeStyles.None, out DateTime result))
+			{
+				return result;
+			}
+			return null; 
+		}
 	}
 
 }
