@@ -166,12 +166,25 @@ namespace XuongMay.Services.Service
 				throw new Exception("Thời gian bắt đầu phải lớn hơn thời gian tạo đơn hàng.");
 			}
 
-			//Lấy Task cuối cùng theo EndTime
+			//Lấy Task đầu tiên theo StartTime (Task có thời gian bắt đầu sớm nhất)
+			Tasks? firstTask = _unitOfWork.GetRepository<Tasks>()
+				.Entities
+				.Where(t => t.OrderId == order.Id && !t.DeletedTime.HasValue)
+				.OrderBy(t => t.StartTime)
+				.FirstOrDefault();
+
+			//Lấy Task cuối cùng theo EndTime (Task có thời gian kết thúc muộn nhất)
 			Tasks? lastTask = _unitOfWork.GetRepository<Tasks>()
 				.Entities
 				.Where(t => t.OrderId == order.Id && !t.DeletedTime.HasValue)
 				.OrderByDescending(t => t.EndTime)
 				.FirstOrDefault();
+
+			//Check StartTime của Order <= StartTime của Task đầu tiên
+			if(firstTask != null && startTime > firstTask.StartTime)
+			{
+				throw new Exception("Thời gian bắt đầu của đơn hàng phải nhỏ hơn hoặc bằng thời gian bắt đầu của nhiệm vụ đầu tiên.");
+			}
 
 			// Check EndTime của Order > EndTime của Task cuối cùng
 			if (lastTask != null && endTime <= lastTask.EndTime)
