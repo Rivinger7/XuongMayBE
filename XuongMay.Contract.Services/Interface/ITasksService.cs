@@ -8,7 +8,8 @@ namespace XuongMay.Contract.Services.Interface
 	{
 		Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize);
 		Task<TasksModel> GetTaskByIdAsync(int taskId);
-		Task AddNewTaskAsync(TasksCreateModel taskModel);
+		Task AddNewTaskAsync(TasksGeneralModel taskModel);
+		Task UpdateTaskAsync(int taskId, TasksGeneralModel taskModel);
 		Task DeleteTaskAsync(int taskId);
 	}
 }

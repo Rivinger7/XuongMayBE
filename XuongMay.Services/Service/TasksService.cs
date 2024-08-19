@@ -2,8 +2,6 @@
 using GarmentFactory.Repository.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
-using System.Reflection.Metadata.Ecma335;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -30,29 +28,6 @@ namespace XuongMay.Services.Service
 		/// <param name="taskId"></param>
 		/// <returns></returns>
 		/// <exception cref="ErrorException"></exception>
-		//public async Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize)
-		//{
-		//	//get Tasks with Id
-		//	IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>()
-		//											.GetAll()
-		//											.AsQueryable();
-		//											//.Where(tl => tl.DeletedTime == null)
-		//											//.OrderBy(tl => tl.Id); ;
-
-
-		//	//check weather taskList exist or not
-		//	if (!taskList.Any())
-		//	{
-		//		throw new ErrorException(StatusCodes.Status404NotFound,
-		//								new ErrorDetail() { ErrorMessage = "No Task is stored in database" });
-		//	}
-		//	// Get paginated tasks
-		//	var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
-
-		//	return paginatedTasks;
-
-		//}
-
 		public async Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize)
 		{
 			IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>().Entities
@@ -67,15 +42,21 @@ namespace XuongMay.Services.Service
 
 			var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
 
-			//if (paginatedTasks.Items.Count == 0)
-			//{
-			//	throw new ErrorException(StatusCodes.Status404NotFound,
-			//							new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
-			//}
+			if (paginatedTasks.Items.Count == 0)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
+			}
 
-			return paginatedTasks; //_mapper.Map<BasePaginatedList<Tasks>, BasePaginatedList<TasksModel>>(paginatedTasks);
+			return paginatedTasks;
 		}
 
+		/// <summary>
+		/// Get specific Task by given Id
+		/// </summary>
+		/// <param name="taskId"></param>
+		/// <returns></returns>
+		/// <exception cref="ErrorException"></exception>
 		public async Task<TasksModel> GetTaskByIdAsync(int taskId)
 		{
 			var task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId);
@@ -99,9 +80,76 @@ namespace XuongMay.Services.Service
 		/// </summary>
 		/// <param name="taskModel"></param>
 		/// <returns></returns>
-		public async Task AddNewTaskAsync (TasksCreateModel taskModel)
+		public async Task AddNewTaskAsync (TasksGeneralModel taskModel)
 		{
+			var order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(taskModel.OrderId) 
+										 ?? throw new ErrorException(StatusCodes.Status404NotFound,
+																	new ErrorDetail() { ErrorMessage = "The Order can not found!"});
 
+			var assemblyLine = await _unitOfWork.GetRepository<AssemblyLine>().GetByIdAsync(taskModel.AssemblyLineId)
+												 ?? throw new ErrorException(StatusCodes.Status404NotFound,
+																			new ErrorDetail() { ErrorMessage = "The Assembly Line can not found!" });
+
+			var tasksInSameAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
+														   .Entities
+														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId 
+																					&& taskModel.StartTime >= t.StartTime 
+																					&& taskModel.EndTime <= t.EndTime);
+
+			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfTasks(taskModel.OrderId);
+
+			CheckValidateTask(taskModel, order, assemblyLine, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks);
+
+			Tasks task = new Tasks()
+			{
+				OrderId = taskModel.OrderId,
+				AssemblyLineId = taskModel.AssemblyLineId,
+				Title = taskModel.Title,
+				Description = taskModel.Description,
+				Quantity = taskModel.Quantity,
+				StartTime = taskModel.StartTime,
+				EndTime = taskModel.EndTime
+			};
+
+			await _unitOfWork.GetRepository<Tasks>().InsertAsync(task);
+			await _unitOfWork.SaveAsync();
+		}
+
+		public async Task UpdateTaskAsync (int taskId,TasksGeneralModel taskModel)
+		{
+			var task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId)
+										 ?? throw new ErrorException(StatusCodes.Status404NotFound,
+																	new ErrorDetail() { ErrorMessage = "The Task can not found!" });
+
+			var order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(taskModel.OrderId)
+										 ?? throw new ErrorException(StatusCodes.Status404NotFound,
+																	new ErrorDetail() { ErrorMessage = "The Order can not found!" });
+
+			var assemblyLine = await _unitOfWork.GetRepository<AssemblyLine>().GetByIdAsync(taskModel.AssemblyLineId)
+												 ?? throw new ErrorException(StatusCodes.Status404NotFound,
+																			new ErrorDetail() { ErrorMessage = "The Assembly Line can not found!" });
+
+			var tasksInSameAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
+														   .Entities
+														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId
+																					&& taskModel.StartTime >= t.StartTime
+																					&& taskModel.EndTime <= t.EndTime);
+
+			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfTasks(taskModel.OrderId);
+
+			CheckValidateTask(taskModel, order, assemblyLine, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks);
+
+			task.OrderId = taskModel.OrderId;
+			task.AssemblyLineId = taskModel.AssemblyLineId;
+			task.Title = taskModel.Title;
+			task.Description = taskModel.Description;
+			task.Quantity = taskModel.Quantity;
+			task.StartTime = taskModel.StartTime;
+			task.EndTime = taskModel.EndTime;
+			task.LastUpdatedTime = CoreHelper.SystemTimeNows;
+
+			await _unitOfWork.GetRepository<Tasks>().UpdateAsync(task);
+			await _unitOfWork.SaveAsync();
 		}
 
 		/// <summary>
@@ -129,6 +177,48 @@ namespace XuongMay.Services.Service
 			//delete a Task and save
 			await _unitOfWork.GetRepository<Tasks>().UpdateAsync(task);
 			await _unitOfWork.SaveAsync();
+		}
+
+
+
+		private async Task<int> GetTotalQuantityOfTasks(int orderId)
+		{
+			return await _unitOfWork.GetRepository<Tasks>().Entities
+														.Where(t => t.OrderId == orderId)
+														.SumAsync(t => t.Quantity);
+		}
+
+		private void CheckValidateTask(TasksGeneralModel taskModel ,Order order, AssemblyLine assemblyLine, Tasks tasksInSameAssemblyLine, int sumOfQuantityInOtherTasks)
+		{
+			if (taskModel.StartTime < order.StartTime)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "The Start Time must be after the Order Start Time!" });
+			}
+
+			if (taskModel.StartTime > taskModel.EndTime)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "The End Time must be greater than Start Time" });
+			}
+
+			if (taskModel.StartTime >= order.EndTime || taskModel.EndTime >= order.EndTime)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "Exceeding the deadline time allowed in the Order" });
+			}
+
+			if (tasksInSameAssemblyLine != null)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "This Task has time incuding in other Task which having same assembly line" });
+			}
+
+			if (sumOfQuantityInOtherTasks + taskModel.Quantity > order.Quantity)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "The quantity exceeds order quantity limit!" });
+			}
 		}
 
 	}

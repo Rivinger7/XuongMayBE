@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+//using XuongMay.Core.Utils;
 
 namespace XuongMay.ModelViews.TasksModelViews
 {
-	public class TasksCreateModel
+	public class TasksGeneralModel
 	{
 		[Required(ErrorMessage = "* Order Id can not be empty")]
 		public int OrderId { get; set; }
@@ -17,6 +13,7 @@ namespace XuongMay.ModelViews.TasksModelViews
 
 		[Required(ErrorMessage = "* Title can not be empty")]
 		public string Title { get; set; }
+
 		public string? Description { get; set; }
 
 		[Required(ErrorMessage = "* Please enter quantity !")]
