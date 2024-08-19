@@ -8,7 +8,6 @@ using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AssemblyLineModelView;
 using XuongMay.ModelViews.AssemblyLineModelViews;
-using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Services.Service
 {

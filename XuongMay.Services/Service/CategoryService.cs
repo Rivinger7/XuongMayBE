@@ -1,18 +1,11 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using GarmentFactory.Repository.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.CategoryModels;
-using XuongMay.ModelViews.OrderModelViews;
-using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMay.Services.Service
 {
