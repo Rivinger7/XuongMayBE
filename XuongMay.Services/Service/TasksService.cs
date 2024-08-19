@@ -98,6 +98,8 @@ namespace XuongMay.Services.Service
 
 			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfTasks(taskModel.OrderId);
 
+			Console.WriteLine("sumOfQuantityInOtherTasks: " + sumOfQuantityInOtherTasks);
+
 			CheckValidateTask(taskModel, order, assemblyLine, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks);
 
 			Tasks task = new Tasks()
