@@ -1,5 +1,4 @@
-﻿using System;
-using XuongMay.Core;
+﻿using XuongMay.Core;
 using XuongMay.ModelViews.OrderModelViews;
 
 namespace XuongMay.Contract.Services.Interface
