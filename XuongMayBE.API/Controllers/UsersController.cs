@@ -138,6 +138,36 @@ namespace XuongMayBE.API.Controllers
         }
 
         /// <summary>
+        /// Retrieve the list of manager is not assigned yet
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>
+        /// An IActionResult containing the user data if found
+        /// Returns a BadRequest if the provided id is invalid or the user does not exist
+        /// Returns an Internal Server Error if an unexpected error occurs
+        /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [HttpGet("managers/available")]
+        public async Task<IActionResult> GetAvailableManagersAsync(int pageNumber = 1, int pageSize = 3)
+        {
+            try
+            {
+                var retrieveUser = await _userService.GetAvailableManagersAsync(pageNumber, pageSize);
+                return Ok(retrieveUser);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(new { message = aex.Message });
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Searches for users based on the specified filtering criteria: username, full name, and role
         /// </summary>
         /// <param name="username"></param>
