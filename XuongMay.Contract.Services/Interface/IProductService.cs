@@ -8,8 +8,7 @@ namespace XuongMay.Contract.Services.Interface
 	{
 		Task<BasePaginatedList<ResponseProductModel>> GetAsync(int pageNumber, int pageSize);
 		Task<BasePaginatedList<ResponseProductModel>> GetProductsAsync(int pageNumber, int pageSize, bool? sortByName);
-		//Task<IEnumerable<ResponseProductModel>> GetAsync();
-		//Task<IEnumerable<ResponseProductModel>> GetProductsAsync(bool? sortByName);
+		Task<BasePaginatedList<ResponseProductModel>> SearchProductsAsync(int pageNumber, int pageSize, string? name, string? category);
 		Task<ResponseProductModel> CreateProductAsync(CreateProductModel model);
 		Task<ResponseProductModel> UpdateProductAsync(int id, CreateProductModel model);
 		Task DeleteProductAsync(int id);

@@ -56,6 +56,26 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
+		/// Lấy các sản phẩm theo tên và thể loại, nếu ko nhập gì -> in ra tất cả sản phẩm
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
+		[HttpGet("search_products")]
+		public async Task<IActionResult> SearchProducts(int pageNumber = 1, int pageSize = 3, string? name = null, string? category = null)
+		{
+			try
+			{
+				BasePaginatedList<ResponseProductModel> result = await _productService.SearchProductsAsync(pageNumber, pageSize, name, category);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
+		/// <summary>
 		/// Thêm sản phẩm mới
 		/// </summary>
 		[HttpPost("create")]
