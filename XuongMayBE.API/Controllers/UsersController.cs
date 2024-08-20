@@ -138,7 +138,37 @@ namespace XuongMayBE.API.Controllers
         }
 
         /// <summary>
-        /// Searches for users based on the specified filtering criteria: username, full name, and role
+        /// Retrieve the list of manager is not assigned yet
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <returns>
+        /// An IActionResult containing the user data if found
+        /// Returns a BadRequest if the provided id is invalid or the user does not exist
+        /// Returns an Internal Server Error if an unexpected error occurs
+        /// </returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        [HttpGet("managers/available")]
+        public async Task<IActionResult> GetAvailableManagersAsync(int pageNumber = 1, int pageSize = 3)
+        {
+            try
+            {
+                var retrieveUser = await _userService.GetAvailableManagersAsync(pageNumber, pageSize);
+                return Ok(retrieveUser);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(new { message = aex.Message });
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Searches for users based on the specified filtering criteria: full name, and role
         /// </summary>
         /// <param name="username"></param>
         /// <param name="fullName"></param>
@@ -151,11 +181,11 @@ namespace XuongMayBE.API.Controllers
         /// </returns>
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("search")]
-        public async Task<IActionResult> SearchUsers([FromQuery] string? username = null, [FromQuery] string? fullName = null, [FromQuery] string? role = null, int pageNumber = 1, int pageSize = 3)
+        public async Task<IActionResult> SearchUsers([FromQuery] string? fullName = null, [FromQuery] string? role = null, int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveUsers = await _userService.GetUsersByFilteringAsync(username, fullName, role, pageNumber, pageSize);
+                var retrieveUsers = await _userService.GetUsersByFilteringAsync(fullName, role, pageNumber, pageSize);
                 return Ok(retrieveUsers);
             }
             catch (ArgumentException aex)

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -18,26 +18,12 @@ namespace XuongMay.Services.Service
 			_unitOfWork = unitOfWork;
 			_mapper = mapper;
 		}
-		// Lấy danh sách mọi sản phẩm (cả những sản phẩm bị xóa)
-		public async Task<BasePaginatedList<ResponseProductModel>> GetAsync(int pageNumber, int pageSize)
+		// Lấy sản phẩm theo id
+		public async Task<ResponseProductModel> GetProductAsync(int id)
 		{
-			// Lấy danh sách mọi sản phẩm từ db
-			IQueryable<Product> productsQuery = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category);
-
-			// Tổng số phần tử
-			int totalCount = await productsQuery.CountAsync();
-
-			// Apply pagination
-			List<Product> paginatedProducts = await productsQuery
-				.Skip((pageNumber - 1) * pageSize)
-				.Take(pageSize)
-				.ToListAsync();
-
-			// Map the products to response models
-			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
-
-			// Create and return the paginated list
-			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
+			// Lấy sản phẩm - kiểm tra sự tồn tại
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			return _mapper.Map<ResponseProductModel>(product);
 		}
 
 		// Lấy danh sách các sản phẩm chưa bị xóa, sort nếu muốn
@@ -55,16 +41,42 @@ namespace XuongMay.Services.Service
 			// Tổng số phần tử
 			int totalCount = await productsQuery.CountAsync();
 
-			// Apply pagination
+			// Áp dụng pagination
 			List<Product> paginatedProducts = await productsQuery
 				.Skip((pageNumber - 1) * pageSize)
 				.Take(pageSize)
 				.ToListAsync();
 
-			// Map the products to response models
 			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
+			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
+		}
 
-			// Create and return the paginated list
+		// Tìm các sản phẩm theo tên và thể loại - nếu ko nhập tên hoặc thể loại nào, in ra tất cả
+		public async Task<BasePaginatedList<ResponseProductModel>> SearchProductsAsync(int pageNumber, int pageSize, string? name, string? category)
+		{
+			List<Product> products = await _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category).Where(p => !p.DeletedTime.HasValue).ToListAsync();
+			// Tìm theo tên sản phẩm 
+			if (!string.IsNullOrWhiteSpace(name))
+			{
+				name = CoreHelper.ConvertVnString(name);
+				products = products.Where(p => CoreHelper.ConvertVnString(p.Name).Contains(name)).ToList();
+			}
+			// Tìm theo tên thể loại
+			if (!string.IsNullOrWhiteSpace(category))
+			{
+				category = CoreHelper.ConvertVnString(category);
+				products = products.Where(p => CoreHelper.ConvertVnString(p.Category.Name).Contains(category)).ToList();
+			}
+
+			// Tổng số phần tử
+			int totalCount = products.Count();
+
+			// Áp dụng pagination
+			List<Product> paginatedProducts = products
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize).ToList();
+
+			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
 			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
 		}
 
@@ -142,7 +154,8 @@ namespace XuongMay.Services.Service
 			return _mapper.Map<ResponseProductModel>(product);
 		}
 
-		public async Task DeleteProductAsync(int id)
+		// Xóa 1 sản phẩm
+		public async Task<ResponseProductModel> DeleteProductAsync(int id)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
 			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
@@ -160,6 +173,8 @@ namespace XuongMay.Services.Service
 			product.DeletedTime = CoreHelper.SystemTimeNows;
 			_unitOfWork.GetRepository<Product>().Update(product);
 			await _unitOfWork.SaveAsync();
+
+			return _mapper.Map<ResponseProductModel>(product);
 		}
 	} 
 }

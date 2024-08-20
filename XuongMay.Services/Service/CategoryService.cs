@@ -1,18 +1,12 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using GarmentFactory.Repository.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GarmentFactory.Contract.Repositories.Entity;
+using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.CategoryModels;
-using XuongMay.ModelViews.OrderModelViews;
-using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMay.Services.Service
 {
@@ -27,7 +21,7 @@ namespace XuongMay.Services.Service
 			_unitOfWork = unitOfWork;
 		}
 
-		public BasePaginatedList<AllCategoryModel> GetAllCategory(int? id, bool? sortByName, int pageNumber, int pageSize)
+		public async Task<BasePaginatedList<AllCategoryModel>> GetAllCategoryAsync(int? id, bool? sortByName, int pageNumber, int pageSize)
 		{
 			//Lấy tất cả các Category chưa bị xóa và sắp xếp theo CreaTime mới nhất
 			IQueryable<Category> categories = _unitOfWork.GetRepository<Category>()
@@ -50,20 +44,20 @@ namespace XuongMay.Services.Service
 			}
 
 			// Đếm tổng số lượng đơn hàng sau khi đã lọc
-			int totalCategory = categories.Count();
+			int totalCategory = await categories.CountAsync();
 
 			//Áp dụng phân trang
-			List<AllCategoryModel> pageCategory = categories
+			List<AllCategoryModel> pageCategory = await categories
 				.Skip((pageNumber - 1) * pageSize)
 				.Take(pageSize)
 				.ProjectTo<AllCategoryModel>(_mapper.ConfigurationProvider)
-				.ToList(); ;
+				.ToListAsync(); ;
 
 			// Tạo BasePaginatedList và trả về
 			return new BasePaginatedList<AllCategoryModel>(pageCategory, totalCategory, pageNumber, pageSize);
 		}
 
-		public AllCategoryModel Add(AddCategoryModel model)
+		public async Task<AllCategoryModel> AddAsync(AddCategoryModel model)
 		{
 			//Check tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
@@ -72,9 +66,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category đã tồn tại hay chưa
-			Category? existingCategory = _unitOfWork.GetRepository<Category>()
+			Category? existingCategory = await _unitOfWork.GetRepository<Category>()
 									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue);
+									 .FirstOrDefaultAsync(c => c.Name == model.Name && !c.DeletedTime.HasValue);
 
 			if (existingCategory != null)
 			{
@@ -87,17 +81,17 @@ namespace XuongMay.Services.Service
 			newCategory.DeletedTime = null;
 
 			// Lưu category vào database
-			_unitOfWork.GetRepository<Category>().Insert(newCategory);
-			_unitOfWork.Save();
+			await _unitOfWork.GetRepository<Category>().InsertAsync(newCategory);
+			await _unitOfWork.SaveAsync();
 
 			// Trả về thông tin category vừa được thêm dưới AllCategoryModel
 			return _mapper.Map<AllCategoryModel>(newCategory);
 		}
 
-		public void Update(int id, AddCategoryModel model)
+		public async Task UpdateAsync(int id, AddCategoryModel model)
 		{
 			//Check category có tồn tại không
-			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			//Check category có bị xóa chưa
@@ -113,13 +107,23 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check category có bị trùng tên không?
-			Category? existingCategory = _unitOfWork.GetRepository<Category>()
-									 .Entities
-									 .FirstOrDefault(c => c.Name == model.Name && !c.DeletedTime.HasValue && c.Id != id);
+			Category? existingCategory = await _unitOfWork.GetRepository<Category>()
+				.Entities
+				.FirstOrDefaultAsync(c => c.Name == model.Name && !c.DeletedTime.HasValue && c.Id != id);
 
 			if (existingCategory != null)
 			{
 				throw new Exception($"Danh mục '{model.Name}' đã tồn tại.");
+			}
+
+			//Check có Product trong Category không? Nếu có, thì không thể update
+			bool product = await _unitOfWork.GetRepository<Product>()
+				.Entities
+				.AnyAsync(p => p.CategoryId == id && !p.DeletedTime.HasValue);
+				
+			if(product)
+			{
+				throw new Exception("Không thể cập nhật vì vẫn còn sản phẩm trong danh mục này");
 			}
 
 			//Cập nhật và lưu danh mục
@@ -127,13 +131,13 @@ namespace XuongMay.Services.Service
 			category.LastUpdatedTime = CoreHelper.SystemTimeNows;
 
 			_unitOfWork.GetRepository<Category>().Update(category);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
 		}
 
-		public void Delete(int id)
+		public async Task DeleteAsync(int id)
 		{
 			//Check category có tồn tại không
-			Category category = _unitOfWork.GetRepository<Category>().GetById(id)
+			Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id)
 				?? throw new Exception("Danh mục không tồn tại");
 
 			if(category.DeletedTime.HasValue)
@@ -142,9 +146,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check còn Product trong Category không? Nếu còn, thì ko thể xóa
-			bool product = _unitOfWork.GetRepository<Product>()
+			bool product = await _unitOfWork.GetRepository<Product>()
 				.Entities
-				.Any(p => p.CategoryId == id && !p.DeletedTime.HasValue);
+				.AnyAsync(p => p.CategoryId == id && !p.DeletedTime.HasValue);
 			
 			if(product)
 			{
@@ -156,7 +160,7 @@ namespace XuongMay.Services.Service
 			category.IsDeleted = true;
 
 			_unitOfWork.GetRepository<Category>().Update(category);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
 		}
 	}
 }

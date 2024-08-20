@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using XuongMay.ModelViews.JwtModelViews;
-using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Contract.Services.Interface
 {

@@ -1,4 +1,4 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

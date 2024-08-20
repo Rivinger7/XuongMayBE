@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
-using Microsoft.AspNetCore.Http;
+using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -8,7 +7,6 @@ using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AssemblyLineModelView;
 using XuongMay.ModelViews.AssemblyLineModelViews;
-using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -16,16 +14,14 @@ namespace XuongMay.Services.Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AssemblyLineService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public AssemblyLineService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<BasePaginatedList<AssemblyLineModelView>> GetAllAssemblyLineAsync(int pageNumber, int pageSize)
+        public async Task<BasePaginatedList<AssemblyLineSummaryModel>> GetAllAssemblyLineAsync(int pageNumber, int pageSize)
         {
             // Retrieve all assembly lines from the repository
             IEnumerable<AssemblyLine> retrieveAssemblyLines = await _unitOfWork.GetRepository<AssemblyLine>().Entities.Where(al => !al.IsDeleted).ToListAsync();
@@ -42,10 +38,10 @@ namespace XuongMay.Services.Service
             // Pagination
             IReadOnlyCollection<AssemblyLine> paginatedassemblyLine = retrieveAssemblyLines.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
-            IReadOnlyCollection<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineModelView>>(paginatedassemblyLine);
+            IReadOnlyCollection<AssemblyLineSummaryModel> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineSummaryModel>>(paginatedassemblyLine);
 
             // Create the paginated list
-            BasePaginatedList<AssemblyLineModelView> paginatedList = new (assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
+            BasePaginatedList<AssemblyLineSummaryModel> paginatedList = new (assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
 
             return paginatedList;
         }
@@ -78,7 +74,18 @@ namespace XuongMay.Services.Service
             return assemblyLineModel;
         }
 
-        public async Task<BasePaginatedList<AssemblyLineModelView>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? description, int pageNumber, int pageSize)
+        public async Task<AssemblyLineModelView> GetAssemblyLineByManagerNameAsync(string managerName)
+        {
+            // Retrieve assembly line form the repository
+            AssemblyLine retrieveAssemblyLine = await _unitOfWork.GetRepository<AssemblyLine>().Entities.FirstOrDefaultAsync(manager => manager.Name.ToLower() == managerName.ToLower().Trim()) ?? throw new ArgumentException($"Assembly line with Manager {managerName} not found");
+
+            // Map the Assembly line entities to AssemblyLineModelView
+            AssemblyLineModelView assemblyLineModel = _mapper.Map<AssemblyLine, AssemblyLineModelView>(retrieveAssemblyLine);
+
+            return assemblyLineModel;
+        }
+
+        public async Task<BasePaginatedList<AssemblyLineSummaryModel>> GetAssemblyLinesByFilteringAsync(string? assemblyLineName, string? creator, int pageNumber, int pageSize)
         {
             // Start with a base query to retrieve assembly line that have not been soft deleted
             IQueryable<AssemblyLine> query = _unitOfWork.GetRepository<AssemblyLine>().Entities.Where(al => !al.IsDeleted);
@@ -86,12 +93,12 @@ namespace XuongMay.Services.Service
             // Apply filters based on search criteria
             if (!string.IsNullOrWhiteSpace(assemblyLineName))
             {
-                query = query.Where(user => user.Name.ToLower().Contains(assemblyLineName.ToLower()));
+                query = query.Where(al => al.Name.ToLower().Contains(assemblyLineName.ToLower()));
             }
 
-            if (!string.IsNullOrWhiteSpace(description))
+            if (!string.IsNullOrWhiteSpace(creator))
             {
-                query = query.Where(user => user.Description.ToLower().Contains(description.ToLower()));
+                query = query.Where(al => al.CreatedBy.ToLower().Contains(creator.ToLower()));
             }
 
             // Retrieve the filtered list of assembly line
@@ -110,10 +117,10 @@ namespace XuongMay.Services.Service
             IReadOnlyCollection<AssemblyLine> paginatedAssemblyLine = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
 
             // Map the User entities to UserResponseModel
-            IReadOnlyCollection<AssemblyLineModelView> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineModelView>>(paginatedAssemblyLine);
+            IReadOnlyCollection<AssemblyLineSummaryModel> assemblyLineModel = _mapper.Map<IReadOnlyCollection<AssemblyLine>, IReadOnlyCollection<AssemblyLineSummaryModel>>(paginatedAssemblyLine);
 
             // Create the paginated list
-            BasePaginatedList<AssemblyLineModelView> paginatedList = new(assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
+            BasePaginatedList<AssemblyLineSummaryModel> paginatedList = new(assemblyLineModel, totalAssemblyLines, pageNumber, pageSize);
 
             return paginatedList;
         }

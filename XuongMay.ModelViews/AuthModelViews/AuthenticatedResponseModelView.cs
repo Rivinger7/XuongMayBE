@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XuongMay.ModelViews.AuthModelViews
+﻿namespace XuongMay.ModelViews.AuthModelViews
 {
-	public class AuthenticatedResponseModelView
+    public class AuthenticatedResponseModelView
 	{
 		public string? AccessToken { get; set; }
 		public string? RefreshToken { get; set; }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GarmentFactory.Repository.Entities
+﻿namespace GarmentFactory.Contract.Repositories.Entity
 {
 	public class AssemblyLine
 	{

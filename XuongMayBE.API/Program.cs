@@ -20,7 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 //Authorize by input token to access API
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Spotify Pool", Version = "v1" });
+	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Xuong May", Version = "v1" });
 
 	// Add JWT Authentication
 	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

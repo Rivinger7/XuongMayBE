@@ -19,29 +19,13 @@ namespace XuongMayBE.API.Controllers
 			_productService = productService;
 		}
 
-		/// <summary>
-		/// Lấy toàn bộ sản phẩm, kể cả những cái đã xóa
-		/// </summary>
-		[HttpGet("all_products")]
-		public async Task<IActionResult> GetAllProducts(int pageNumber = 1, int pageSize = 3)
-		{
-			try
-			{
-				BasePaginatedList<ResponseProductModel> result = await _productService.GetAsync(pageNumber, pageSize);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
 
 		/// <summary>
 		/// Lấy các sản phẩm không bị xóa, sort nếu muốn
 		/// </summary>
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
-		[HttpGet("exist_products")]
+		[HttpGet("all_products")]
 		public async Task<IActionResult> GetExistProducts(int pageNumber = 1, int pageSize = 3, bool? sortByName = null)
 		{
 			try
@@ -54,6 +38,44 @@ namespace XuongMayBE.API.Controllers
 				return BadRequest(new { Message = ex.Message });
 			}
 		}
+
+		/// <summary>
+		/// Lấy các sản phẩm theo tên và thể loại, nếu ko nhập gì -> in ra tất cả sản phẩm
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
+		[HttpGet("search_products")]
+		public async Task<IActionResult> SearchProducts(int pageNumber = 1, int pageSize = 3, string? name = null, string? category = null)
+		{
+			try
+			{
+				BasePaginatedList<ResponseProductModel> result = await _productService.SearchProductsAsync(pageNumber, pageSize, name, category);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
+		/// <summary>
+		/// Lấy sản phẩm theo id
+		/// </summary>
+		[HttpGet("get_by_id")]
+		public async Task<IActionResult> GetProductById(int id)
+		{
+			try
+			{
+				ResponseProductModel result = await _productService.GetProductAsync(id);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
 
 		/// <summary>
 		/// Thêm sản phẩm mới
@@ -93,7 +115,7 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Xóa sản phẩm
+		/// Xóa 1 sản phẩm (thành công nếu sản phẩm này không thuộc order chưa hoàn thành)
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
@@ -102,8 +124,8 @@ namespace XuongMayBE.API.Controllers
 		{
 			try
 			{
-				await _productService.DeleteProductAsync(id);
-				return Ok();
+				ResponseProductModel result = await _productService.DeleteProductAsync(id);
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{

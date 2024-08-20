@@ -1,13 +1,15 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
+using XuongMay.Core;
 using XuongMay.ModelViews.TasksModelViews;
 
 namespace XuongMay.Contract.Services.Interface
 {
 	public interface ITasksService
 	{
-		Task<IList<Tasks>> GetAllTaskAsync();
-		Task<Tasks> GetTaskByIdAsync(int taskId);
-		Task AddNewTaskAsync(TasksCreateModel taskModel);
+		Task<BasePaginatedList<TasksGettingModel>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId);
+		Task<TasksGettingModel> GetTaskByIdAsync(int taskId);
+		Task AddNewTaskAsync(TasksUpdatingModel taskModel);
+		Task UpdateTaskAsync(int taskId, TasksUpdatingModel taskModel);
 		Task DeleteTaskAsync(int taskId);
 	}
 }

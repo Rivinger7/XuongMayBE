@@ -1,17 +1,17 @@
-﻿using System;
-using XuongMay.Core;
+﻿using XuongMay.Core;
 using XuongMay.ModelViews.OrderModelViews;
+using XuongMay.ModelViews.ProductModelViews;
 
 namespace XuongMay.Contract.Services.Interface
 {
 	public interface IOrderService
 	{
-		BasePaginatedList<AllOrderModelView> GetAllOrder(string searchByProductName, int pageNumber, int pageSize);
+		Task<BasePaginatedList<AllOrderModelView>> GetAllOrderAsync(int pageNumber, int pageSize, bool? isCompleted, string? productName);
 
-		AllOrderModelView AddOrder(AddOrderModelView model);
+		Task<AllOrderModelView> AddOrderAsync(AddOrderModelView model);
 
-		void UpdateOrder (int id, UpdateOrderModelView model);
+		Task UpdateOrderAsync (int id, UpdateOrderModelView model);
 
-		void DeleteOrder (int id);
+		Task DeleteOrderAsync (int id);
 	}
 }

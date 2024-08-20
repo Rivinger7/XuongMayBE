@@ -19,16 +19,19 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Lấy toàn bộ đơn hàng
+		/// Lấy danh sách đơn hàng
 		/// </summary>
-		/// <param name="searcProductName"></param>
+		/// <param name="pageNumber"></param>
+		/// <param name="pageSize"></param>
+		/// <param name="isCompleted"></param>
+		/// <param name="productName"></param>
 		/// <returns></returns>
-		[HttpGet("all_order")]
-		public IActionResult GetAllOrder(string? searcProductName, int pageNumber = 1, int pageSize = 3)
+		[HttpGet("get_orders")]
+		public async Task<IActionResult> GetAllOrder(int pageNumber = 1, int pageSize = 3, bool? isCompleted = null, string? productName = null)
 		{
 			try
 			{
-				var result = _orderService.GetAllOrder(searcProductName, pageNumber, pageSize);
+				var result = await _orderService.GetAllOrderAsync(pageNumber, pageSize, isCompleted, productName);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -43,11 +46,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="model"></param>
 		/// <returns></returns>
 		[HttpPost("create")]
-		public IActionResult AddOrder(AddOrderModelView model)
+		public async Task<IActionResult> AddOrder(AddOrderModelView model)
 		{
 			try
 			{
-				var result = _orderService.AddOrder(model);
+				var result = await _orderService.AddOrderAsync(model);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -63,11 +66,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="model"></param>
 		/// <returns></returns>
 		[HttpPut("update")]
-		public IActionResult UpdateOrder(int id, UpdateOrderModelView model)
+		public async Task<IActionResult> UpdateOrder(int id, UpdateOrderModelView model)
 		{
 			try
 			{
-				_orderService.UpdateOrder(id, model);
+				await _orderService.UpdateOrderAsync(id, model);
 				return Ok();
 			}
 			catch (Exception ex)
@@ -76,12 +79,17 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
+		/// <summary>
+		/// Xóa đơn hàng
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
 		[HttpDelete("delete")]
-		public IActionResult DeleteOrder(int id)
+		public async Task<IActionResult> DeleteOrder(int id)
 		{
 			try
 			{
-				_orderService.DeleteOrder(id);
+				await _orderService.DeleteOrderAsync(id);
 				return Ok();
 			}
 			catch (Exception ex)
@@ -89,5 +97,6 @@ namespace XuongMayBE.API.Controllers
 				return BadRequest(new { Message = ex.Message });
 			}
 		}
+
 	}
 }
