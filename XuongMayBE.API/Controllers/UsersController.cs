@@ -168,7 +168,7 @@ namespace XuongMayBE.API.Controllers
         }
 
         /// <summary>
-        /// Searches for users based on the specified filtering criteria: username, full name, and role
+        /// Searches for users based on the specified filtering criteria: full name, and role
         /// </summary>
         /// <param name="username"></param>
         /// <param name="fullName"></param>
@@ -181,11 +181,11 @@ namespace XuongMayBE.API.Controllers
         /// </returns>
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("search")]
-        public async Task<IActionResult> SearchUsers([FromQuery] string? username = null, [FromQuery] string? fullName = null, [FromQuery] string? role = null, int pageNumber = 1, int pageSize = 3)
+        public async Task<IActionResult> SearchUsers([FromQuery] string? fullName = null, [FromQuery] string? role = null, int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveUsers = await _userService.GetUsersByFilteringAsync(username, fullName, role, pageNumber, pageSize);
+                var retrieveUsers = await _userService.GetUsersByFilteringAsync(fullName, role, pageNumber, pageSize);
                 return Ok(retrieveUsers);
             }
             catch (ArgumentException aex)

@@ -132,17 +132,12 @@ namespace XuongMay.Services.Service
             return paginatedList;
         }
 
-        public async Task<BasePaginatedList<UserSummaryModel>> GetUsersByFilteringAsync(string? username, string? fullName, string? role, int pageNumber, int pageSize)
+        public async Task<BasePaginatedList<UserSummaryModel>> GetUsersByFilteringAsync(string? fullName, string? role, int pageNumber, int pageSize)
         {
             // Start with a base query to retrieve users that have not been soft deleted
             IQueryable<User> query = _unitOfWork.GetRepository<User>().Entities.Where(user => !user.IsDeleted);
 
             // Apply filters based on search criteria
-            if (!string.IsNullOrWhiteSpace(username))
-            {
-                query = query.Where(user => user.Username.ToLower().Contains(username.ToLower()));
-            }
-
             if (!string.IsNullOrWhiteSpace(fullName))
             {
                 query = query.Where(user => user.FullName.ToLower().Contains(fullName.ToLower()));

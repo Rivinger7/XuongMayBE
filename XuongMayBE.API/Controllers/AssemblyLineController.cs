@@ -68,6 +68,30 @@ namespace XuongMayBE.API.Controllers
         }
 
         /// <summary>
+        /// Retrieves an assembly line by manager's name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>The assembly line with by manager's name</returns>
+        [HttpGet("by-manager/{name}")]
+        public async Task<IActionResult> GetAssemblyLineByManagerName(string name)
+        {
+            try
+            {
+                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLineByManagerNameAsync(name);
+                return Ok(retrieveAssemblyLine);
+            }
+            catch (ArgumentException aex)
+            {
+                return BadRequest(new { message = aex.Message });
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.StackTrace);
+                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Retrieves an assembly line by the manager's ID
         /// </summary>
         /// <param name="id"></param>
@@ -121,16 +145,16 @@ namespace XuongMayBE.API.Controllers
         /// Searches for assembly lines based on name and description filters
         /// </summary>
         /// <param name="assemblyLineName"></param>
-        /// <param name="description"></param>
+        /// <param name="creator"></param>
         /// <param name="pageNumber"></param>
         /// <param name="pageSize"></param>
         /// <returns>A list of assembly lines matching the specified filters</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> GetAssemblyLinesByFilteringAsync([FromQuery] string? assemblyLineName, [FromQuery] string? description, int pageNumber = 1, int pageSize = 3)
+        public async Task<IActionResult> GetAssemblyLinesByFilteringAsync([FromQuery] string? assemblyLineName, [FromQuery] string? creator, int pageNumber = 1, int pageSize = 3)
         {
             try
             {
-                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByFilteringAsync(assemblyLineName, description, pageNumber, pageSize);
+                var retrieveAssemblyLine = await _assemblyLineService.GetAssemblyLinesByFilteringAsync(assemblyLineName, creator, pageNumber, pageSize);
                 return Ok(retrieveAssemblyLine);
             }
             catch (ArgumentException aex)
