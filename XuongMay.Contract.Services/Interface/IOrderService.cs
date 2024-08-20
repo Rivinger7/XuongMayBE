@@ -12,5 +12,8 @@ namespace XuongMay.Contract.Services.Interface
 		void UpdateOrder (int id, UpdateOrderModelView model);
 
 		void DeleteOrder (int id);
+		Task<BasePaginatedList<AllOrderModelView>> GetCompletedOrder(int pageNumber, int pageSize);
+		Task<BasePaginatedList<AllOrderModelView>> GetIncompletedOrder(int pageNumber, int pageSize);
+		Task<BasePaginatedList<AllOrderModelView>> GetOrderByProductName(int pageNumber, int pageSize, string? productName);
 	}
 }

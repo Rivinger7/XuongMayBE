@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using GarmentFactory.Contract.Repositories.Entity;
+using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.OrderModelViews;
+using XuongMay.ModelViews.ProductModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -52,7 +54,7 @@ namespace XuongMay.Services.Service
 		public AllOrderModelView AddOrder(AddOrderModelView model)
 		{
 			//Check số lượng không được để trống và <= 0
-			if(model.Quantity <= 0)
+			if (model.Quantity <= 0)
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0.");
 			}
@@ -103,7 +105,7 @@ namespace XuongMay.Services.Service
 		public void UpdateOrder(int id, UpdateOrderModelView model)
 		{
 			//Check số lượng không được để trống và <= 0
-			if(model.Quantity <= 0)
+			if (model.Quantity <= 0)
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn 0");
 			}
@@ -141,7 +143,7 @@ namespace XuongMay.Services.Service
 				.Sum(t => t.Quantity);
 
 			// Check nếu Quantity của Order > tổng Quantity của các Task, thì được chỉnh sửa Quantity của Order
-			if(model.Quantity < totalQuantity)
+			if (model.Quantity < totalQuantity)
 			{
 				throw new Exception("Số lượng đơn hàng phải lớn hơn hoặc bằng tổng số lượng trong các nhiệm vụ");
 			}
@@ -161,7 +163,7 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check StartTime >= CreateTime
-			if(startTime < order.CreatedTime)
+			if (startTime < order.CreatedTime)
 			{
 				throw new Exception("Thời gian bắt đầu phải lớn hơn thời gian tạo đơn hàng.");
 			}
@@ -181,7 +183,7 @@ namespace XuongMay.Services.Service
 				.FirstOrDefault();
 
 			//Check StartTime của Order <= StartTime của Task đầu tiên
-			if(firstTask != null && startTime > firstTask.StartTime)
+			if (firstTask != null && startTime > firstTask.StartTime)
 			{
 				throw new Exception("Thời gian bắt đầu của đơn hàng phải nhỏ hơn hoặc bằng thời gian bắt đầu của nhiệm vụ đầu tiên.");
 			}
@@ -210,7 +212,7 @@ namespace XuongMay.Services.Service
 				?? throw new Exception("Đơn hàng không tồn tại");
 
 			//Check đơn hàng có bị xóa chưa
-			if(order.DeletedTime.HasValue)
+			if (order.DeletedTime.HasValue)
 			{
 				throw new Exception("Đơn hàng không tồn tại");
 			}
@@ -230,6 +232,90 @@ namespace XuongMay.Services.Service
 
 			_unitOfWork.GetRepository<Order>().Update(order);
 			_unitOfWork.Save();
+		}
+
+		public async Task<BasePaginatedList<AllOrderModelView>> GetCompletedOrder(int pageNumber, int pageSize)
+		{
+			DateTime now = CoreHelper.SystemTimeNows;
+			// Lấy từ db những đơn hàng đã hoàn thành
+			// Điều kiện: Tổng quantity các task của order == tổng quantity của order
+			//         VÀ Endtime của mọi task của order <= now
+			//            => COMPLETED order
+			List<Order> completedOrders = await _unitOfWork.GetRepository<Order>().Entities
+												.Where(o => !o.DeletedTime.HasValue &&
+															_unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
+																		.Sum(t => t.Quantity) == o.Quantity &&
+															!_unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
+																		.Any(t => t.EndTime > now)).ToListAsync();
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalOrders = completedOrders.Count();
+
+			// Áp dụng phân trang
+			List<Order> pagedOrders = completedOrders
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.ToList();
+
+			// Tạo BasePaginatedList và trả về
+			IReadOnlyCollection<AllOrderModelView> responseItems = _mapper.Map<IReadOnlyCollection<AllOrderModelView>>(pagedOrders);
+			return new BasePaginatedList<AllOrderModelView>(responseItems, totalOrders, pageNumber, pageSize);
+		}
+
+		public async Task<BasePaginatedList<AllOrderModelView>> GetIncompletedOrder(int pageNumber, int pageSize)
+		{
+			DateTime now = CoreHelper.SystemTimeNows;
+			// Lấy từ db những đơn hàng chưa hoàn thành
+			// Điều kiện: Tổng quantity các task của order < tổng quantity của order
+			//       HOẶC có bất kỳ Endtime của mọi task của order > now
+			//            => INCOMPLETED order
+			List<Order> incompletedOrders = await _unitOfWork.GetRepository<Order>().Entities
+												.Where(o => !o.DeletedTime.HasValue &&
+															_unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
+																		.Sum(t => t.Quantity) < o.Quantity ||
+															_unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
+																		.Any(t => t.EndTime > now)).ToListAsync();
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalOrders = incompletedOrders.Count();
+
+			// Áp dụng phân trang
+			List<Order> pagedOrders = incompletedOrders
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize).ToList();
+
+			// Tạo BasePaginatedList và trả về
+			IReadOnlyCollection<AllOrderModelView> responseItems = _mapper.Map<IReadOnlyCollection<AllOrderModelView>>(pagedOrders);
+			return new BasePaginatedList<AllOrderModelView>(responseItems, totalOrders, pageNumber, pageSize);
+		}
+
+		public async Task<BasePaginatedList<AllOrderModelView>> GetOrderByProductName(int pageNumber, int pageSize, string? productName)
+		{
+			DateTime now = CoreHelper.SystemTimeNows;
+			// Lấy từ db những đơn hàng của product có tên đã cho
+			List<Order> orders = await _unitOfWork.GetRepository<Order>().Entities.Include(t => t.Product)
+												.Where(o => !o.DeletedTime.HasValue).ToListAsync();
+
+			// Lọc orders theo tên sản phẩm (không phân biệt hoa thường, dấu tiếng việt)
+			if (!string.IsNullOrWhiteSpace(productName))
+			{
+				productName = CoreHelper.ConvertVnString(productName);
+				orders = orders.Where(o => CoreHelper.ConvertVnString(o.Product.Name).Contains(productName)).ToList();
+			}
+
+			// Đếm tổng số lượng đơn hàng sau khi đã lọc
+			int totalOrders = orders.Count();
+
+			// Áp dụng phân trang
+			List<Order> pagedOrders = orders
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize).ToList();
+
+			// Tạo BasePaginatedList và trả về
+			IReadOnlyCollection<AllOrderModelView> responseItems = _mapper.Map<IReadOnlyCollection<AllOrderModelView>>(pagedOrders);
+			return new BasePaginatedList<AllOrderModelView>(responseItems, totalOrders, pageNumber, pageSize);
 		}
 	}
 }

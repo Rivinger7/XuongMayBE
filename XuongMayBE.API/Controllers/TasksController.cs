@@ -54,14 +54,16 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="pageIndex"></param>
 		/// <param name="pageSize"></param>
+		/// <param name="isCompleted"></param>
+		/// <param name="orderId"></param>
 		/// <returns>The amount of Task with pageSize and pageIndex</returns>
-		[HttpGet("get_all")]
-		public async Task<IActionResult> GetAll(int pageIndex = 1, int pageSize = 10)
+		[HttpGet("get_tasks")]
+		public async Task<IActionResult> GetTasks(int pageIndex = 1, int pageSize = 10, bool? isCompleted = null, int? orderId = null)
 		{
 			try
 			{
 				//Call method and then return list of available tasks
-				var taskList = await _taskService.GetAllTaskAsync(pageIndex, pageSize);
+				var taskList = await _taskService.GetAllTaskAsync(pageIndex, pageSize, isCompleted, orderId);
 				return Ok(taskList.Items);
 			}
 			catch (ErrorException ex)
@@ -149,70 +151,5 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
-		/// <summary>
-		/// Find all INCOMPLETED Task 
-		/// </summary>
-		/// <param name="pageIndex"></param>
-		/// <param name="pageSize"></param>
-		/// <returns>The amount of Task with pageSize and pageIndex</returns>
-		[HttpGet("get_completed_tasks")]
-		public async Task<IActionResult> GetCompleteTasks(int pageIndex = 1, int pageSize = 10)
-		{
-			try
-			{
-				//Call method and then return list of available tasks
-				var taskList = await _taskService.GetCompletedTasksAsync(pageIndex, pageSize);
-				return Ok(taskList.Items);
-			}
-			catch (ErrorException ex)
-			{
-				// Return the status code and message from the ErrorException
-				return StatusCode(ex.StatusCode, ex.ErrorDetail);
-			}
-		}
-
-		/// <summary>
-		/// Find all INCOMPLETED Task 
-		/// </summary>
-		/// <param name="pageIndex"></param>
-		/// <param name="pageSize"></param>
-		/// <returns>The amount of Task with pageSize and pageIndex</returns>
-		[HttpGet("get_incompleted_tasks")]
-		public async Task<IActionResult> GetIncompleteTasks(int pageIndex = 1, int pageSize = 10)
-		{
-			try
-			{
-				//Call method and then return list of available tasks
-				var taskList = await _taskService.GetIncompletedTasksAsync(pageIndex, pageSize);
-				return Ok(taskList.Items);
-			}
-			catch (ErrorException ex)
-			{
-				// Return the status code and message from the ErrorException
-				return StatusCode(ex.StatusCode, ex.ErrorDetail);
-			}
-		}
-
-		/// <summary>
-		/// Find all INCOMPLETED Task 
-		/// </summary>
-		/// <param name="pageIndex"></param>
-		/// <param name="pageSize"></param>
-		/// <returns>The amount of Task with pageSize and pageIndex</returns>
-		[HttpGet("get_tasks_by_orderId")]
-		public async Task<IActionResult> GetIncompleteTasks(int pageIndex = 1, int pageSize = 10, int orderId = 0)
-		{
-			try
-			{
-				//Call method and then return list of available tasks
-				var taskList = await _taskService.GetTasksByOrderIdAsync(pageIndex, pageSize, orderId);
-				return Ok(taskList.Items);
-			}
-			catch (ErrorException ex)
-			{
-				// Return the status code and message from the ErrorException
-				return StatusCode(ex.StatusCode, ex.ErrorDetail);
-			}
-		}
 	}
 }
