@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.ConstrainedExecution;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
 using XuongMay.Core.Utils;
-using XuongMay.ModelViews.ProductModelViews;
 using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Services.Service

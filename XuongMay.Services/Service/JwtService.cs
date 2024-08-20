@@ -1,30 +1,20 @@
-﻿using Castle.Components.DictionaryAdapter.Xml;
-using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net.Sockets;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.JwtModelViews;
-using XuongMay.ModelViews.UserModelViews;
-using XuongMay.Repositories.UOW;
 using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMay.Services.Service
 {
-	public class JwtService : IJwtService
+    public class JwtService : IJwtService
 	{
 		private readonly IConfiguration _config;
 		private readonly IUnitOfWork _unitOfWork;

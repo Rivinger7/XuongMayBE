@@ -1,4 +1,4 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace GarmentFactory.Repository.Context
 		public virtual DbSet<Category> Categories { get; set; }
 		public virtual DbSet<Order> Orders { get; set; }
 		public virtual DbSet<Product> Products { get; set; }
-		public virtual DbSet<Entities.Tasks> Tasks { get; set; }
+		public virtual DbSet<Tasks> Tasks { get; set; }
 		#endregion
 
 		// config connection string default if not set
@@ -95,7 +95,7 @@ namespace GarmentFactory.Repository.Context
 				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
 			});
 
-			modelBuilder.Entity<Entities.Tasks>(entity =>
+			modelBuilder.Entity<Tasks>(entity =>
 			{
 				entity.HasKey(e => e.Id); // set Primary Key
 

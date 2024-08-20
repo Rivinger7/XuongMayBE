@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;

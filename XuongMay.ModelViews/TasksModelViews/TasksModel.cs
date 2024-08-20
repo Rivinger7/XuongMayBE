@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XuongMay.ModelViews.TasksModelViews
+﻿namespace XuongMay.ModelViews.TasksModelViews
 {
-	public class TasksModel
+    public class TasksModel
 	{
 		public int Id { get; set; }
 		public int OrderId { get; set; }

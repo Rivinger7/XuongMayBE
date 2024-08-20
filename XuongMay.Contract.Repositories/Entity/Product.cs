@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GarmentFactory.Repository.Entities
+namespace GarmentFactory.Contract.Repositories.Entity
 {
 	public class Product
 	{

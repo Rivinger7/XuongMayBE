@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace GarmentFactory.Repository.Entities
+namespace GarmentFactory.Contract.Repositories.Entity
 {
     public class User
 	{

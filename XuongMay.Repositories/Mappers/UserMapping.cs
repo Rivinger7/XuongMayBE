@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using XuongMay.ModelViews.UserModelViews;
 
 namespace XuongMay.Repositories.Mappers

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using XuongMay.ModelViews.OrderModelViews;
 
 namespace XuongMay.Repositories.Mappers
 {
-	public class OrderMapping : Profile
+    public class OrderMapping : Profile
 	{
 		public OrderMapping()
 		{

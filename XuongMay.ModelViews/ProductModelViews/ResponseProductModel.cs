@@ -1,5 +1,4 @@
-﻿
-namespace XuongMay.ModelViews.ProductModelViews
+﻿namespace XuongMay.ModelViews.ProductModelViews
 {
 	public class ResponseProductModel
 	{

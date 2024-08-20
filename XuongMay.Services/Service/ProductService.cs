@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GarmentFactory.Repository.Entities;
+using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;

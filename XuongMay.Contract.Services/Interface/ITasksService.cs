@@ -1,4 +1,4 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
 using XuongMay.Core;
 using XuongMay.ModelViews.TasksModelViews;
 

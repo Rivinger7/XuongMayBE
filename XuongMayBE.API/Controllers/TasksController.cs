@@ -1,4 +1,4 @@
-﻿using GarmentFactory.Repository.Entities;
+﻿using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
