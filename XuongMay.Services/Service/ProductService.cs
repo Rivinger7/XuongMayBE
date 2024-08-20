@@ -18,23 +18,12 @@ namespace XuongMay.Services.Service
 			_unitOfWork = unitOfWork;
 			_mapper = mapper;
 		}
-		// Lấy danh sách mọi sản phẩm (cả những sản phẩm bị xóa)
-		public async Task<BasePaginatedList<ResponseProductModel>> GetAsync(int pageNumber, int pageSize)
+		// Lấy sản phẩm theo id
+		public async Task<ResponseProductModel> GetProductAsync(int id)
 		{
-			// Lấy danh sách mọi sản phẩm từ db
-			IQueryable<Product> productsQuery = _unitOfWork.GetRepository<Product>().Entities.Include(p => p.Category);
-
-			// Tổng số phần tử
-			int totalCount = await productsQuery.CountAsync();
-
-			// Áp dụng pagination
-			List<Product> paginatedProducts = await productsQuery
-				.Skip((pageNumber - 1) * pageSize) 
-				.Take(pageSize) 
-				.ToListAsync(); 
-
-			IReadOnlyCollection<ResponseProductModel> responseItems = _mapper.Map<IReadOnlyCollection<ResponseProductModel>>(paginatedProducts);
-			return new BasePaginatedList<ResponseProductModel>(responseItems, totalCount, pageNumber, pageSize);
+			// Lấy sản phẩm - kiểm tra sự tồn tại
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			return _mapper.Map<ResponseProductModel>(product);
 		}
 
 		// Lấy danh sách các sản phẩm chưa bị xóa, sort nếu muốn
