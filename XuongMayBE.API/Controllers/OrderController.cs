@@ -19,16 +19,19 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Lấy toàn bộ đơn hàng
+		/// Lấy danh sách đơn hàng
 		/// </summary>
-		/// <param name="searcProductName"></param>
+		/// <param name="pageNumber"></param>
+		/// <param name="pageSize"></param>
+		/// <param name="isCompleted"></param>
+		/// <param name="productName"></param>
 		/// <returns></returns>
-		[HttpGet("all_order")]
-		public IActionResult GetAllOrder(string? searcProductName, int pageNumber = 1, int pageSize = 3)
+		[HttpGet("get_orders")]
+		public async Task<IActionResult> GetAllOrder(int pageNumber = 1, int pageSize = 3, bool? isCompleted = null, string? productName = null)
 		{
 			try
 			{
-				var result = _orderService.GetAllOrder(searcProductName, pageNumber, pageSize);
+				var result = await _orderService.GetAllOrder(pageNumber, pageSize, isCompleted, productName);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -90,65 +93,5 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
-		/// <summary>
-		/// Lấy toàn bộ đơn hàng đã hoàn thành
-		/// </summary>
-		/// <param name="pageNumber"></param>
-		/// <param name="pageSize"></param>
-		/// <returns></returns>
-		[HttpGet("get_completed_orders")]
-		public async Task<IActionResult> GetCompletedOrders(int pageNumber = 1, int pageSize = 3)
-		{
-			try
-			{
-				var result = await _orderService.GetCompletedOrder(pageNumber, pageSize);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
-		/// <summary>
-		/// Lấy toàn bộ đơn hàng chưa hoàn thành
-		/// </summary>
-		/// <param name="pageNumber"></param>
-		/// <param name="pageSize"></param>
-		/// <returns></returns>
-		[HttpGet("get_incompleted_orders")]
-		public async Task<IActionResult> GetIncompletedOrders(int pageNumber = 1, int pageSize = 3)
-		{
-			try
-			{
-				var result = await _orderService.GetIncompletedOrder(pageNumber, pageSize);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
-		/// <summary>
-		/// Lấy các đơn hàng dựa trên keyword đã nhập (tên sản phẩm)
-		/// </summary>
-		/// <param name="pageNumber"></param>
-		/// <param name="pageSize"></param>
-		/// <param name="productName"></param>
-		/// <returns></returns>
-		[HttpGet("get_orders_by_product_name")]
-		public async Task<IActionResult> GetIncompletedOrders(int pageNumber = 1, int pageSize = 3, string? productName = null)
-		{
-			try
-			{
-				var result = await _orderService.GetOrderByProductName(pageNumber, pageSize, productName);
-				return Ok(result);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
 	}
 }

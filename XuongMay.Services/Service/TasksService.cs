@@ -25,7 +25,10 @@ namespace XuongMay.Services.Service
 		/// <summary>
 		/// Show all Tasks which having in DB
 		/// </summary>
-		/// <param name="taskId"></param>
+		/// <param name="pageIndex"></param>
+		/// <param name="pageSize"></param>
+		/// <param name="isCompleted"></param>
+		/// <param name="orderId"></param>
 		/// <returns></returns>
 		/// <exception cref="ErrorException"></exception>
 		public async Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId)
