@@ -11,6 +11,6 @@ namespace XuongMay.Contract.Services.Interface
 		Task<BasePaginatedList<ResponseProductModel>> SearchProductsAsync(int pageNumber, int pageSize, string? name, string? category);
 		Task<ResponseProductModel> CreateProductAsync(CreateProductModel model);
 		Task<ResponseProductModel> UpdateProductAsync(int id, CreateProductModel model);
-		Task DeleteProductAsync(int id);
+		Task<ResponseProductModel> DeleteProductAsync(int id);
 	}
 }

@@ -115,7 +115,7 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Xóa sản phẩm
+		/// Xóa 1 sản phẩm (thành công nếu sản phẩm này không thuộc order chưa hoàn thành)
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns></returns>
@@ -124,8 +124,8 @@ namespace XuongMayBE.API.Controllers
 		{
 			try
 			{
-				await _productService.DeleteProductAsync(id);
-				return Ok();
+				ResponseProductModel result = await _productService.DeleteProductAsync(id);
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{

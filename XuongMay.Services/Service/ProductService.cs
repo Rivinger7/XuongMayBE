@@ -155,7 +155,7 @@ namespace XuongMay.Services.Service
 		}
 
 		// Xóa 1 sản phẩm
-		public async Task DeleteProductAsync(int id)
+		public async Task<ResponseProductModel> DeleteProductAsync(int id)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
 			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
@@ -173,6 +173,8 @@ namespace XuongMay.Services.Service
 			product.DeletedTime = CoreHelper.SystemTimeNows;
 			_unitOfWork.GetRepository<Product>().Update(product);
 			await _unitOfWork.SaveAsync();
+
+			return _mapper.Map<ResponseProductModel>(product);
 		}
 	} 
 }
