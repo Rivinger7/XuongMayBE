@@ -21,11 +21,12 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 		}
 
-		public async Task<BasePaginatedList<AllOrderModelView>> GetAllOrder(int pageNumber, int pageSize, bool? isCompleted, string? productName)
+		public async Task<BasePaginatedList<AllOrderModelView>> GetAllOrderAsync(int pageNumber, int pageSize, bool? isCompleted, string? productName)
 		{
 			
 			IQueryable<Order> ordersQuery = _unitOfWork.GetRepository<Order>().Entities
 										.Where(o => !o.DeletedTime.HasValue);
+
 			// Các order đã hoàn thành hay chưa nếu isCompleted có giá trị
 			if (isCompleted.HasValue)
 			{
@@ -33,7 +34,7 @@ namespace XuongMay.Services.Service
 				if (isCompleted.Value) 
 				{
 					//nếu isCompleted = true -> các order đã hoàn thành
-					// Tổng quantity các task của order == tổng quantity của order VÀ Endtime của mọi task của order <= now
+					// Tổng quantity các task của order == quantity của order VÀ Endtime của mọi task của order <= now
 					ordersQuery = ordersQuery.Where(o => _unitOfWork.GetRepository<Tasks>().Entities
 																	.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
 																	.Sum(t => t.Quantity) == o.Quantity &&
@@ -44,7 +45,7 @@ namespace XuongMay.Services.Service
 				else 
 				{
 					//nếu isCompleted = false -> các order chưa hoàn thành
-					// Tổng quantity các task của order < tổng quantity của order HOẶC có bất kỳ Endtime của mọi task của order > now
+					// Tổng quantity các task của order < quantity của order HOẶC có bất kỳ Endtime của mọi task của order > now
 					ordersQuery = ordersQuery.Where(o => _unitOfWork.GetRepository<Tasks>().Entities
 																	.Where(t => !t.DeletedTime.HasValue && t.OrderId == o.Id)
 																	.Sum(t => t.Quantity) < o.Quantity ||
@@ -53,8 +54,10 @@ namespace XuongMay.Services.Service
 					.Any(t => t.EndTime > now));
 				}
 			}
+
 			//Lấy tất cả Order chưa bị xóa sắp xếp theo CreaTime mới nhất
 			List<Order> orders = await ordersQuery.OrderByDescending(o => o.CreatedTime).ToListAsync();
+
 			// Tìm kiếm theo Tên Sản Phẩm nếu productName có giá trị
 			if (!string.IsNullOrWhiteSpace(productName))
 			{
@@ -75,7 +78,7 @@ namespace XuongMay.Services.Service
 			return new BasePaginatedList<AllOrderModelView>(responseItems, totalOrders, pageNumber, pageSize);
 		}
 
-		public AllOrderModelView AddOrder(AddOrderModelView model)
+		public async Task<AllOrderModelView> AddOrderAsync(AddOrderModelView model)
 		{
 			//Check số lượng không được để trống và <= 0
 			if (model.Quantity <= 0)
@@ -84,9 +87,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check sản phẩm đã tồn tại chưa
-			Product? existingProduct = _unitOfWork.GetRepository<Product>()
+			Product? existingProduct = await _unitOfWork.GetRepository<Product>()
 				.Entities
-				.FirstOrDefault(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
+				.FirstOrDefaultAsync(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
 				?? throw new Exception("Sản phẩm không tồn tại.");
 
 			//Check StartTime & EndTime không được để trống 
@@ -119,14 +122,14 @@ namespace XuongMay.Services.Service
 			newOrder.DeletedTime = null;
 
 			//Lưu order vào DB
-			_unitOfWork.GetRepository<Order>().Insert(newOrder);
-			_unitOfWork.Save();
+			await _unitOfWork.GetRepository<Order>().InsertAsync(newOrder);
+			await _unitOfWork.SaveAsync();
 
 			// Trả về thông tin đơn hàng vừa được thêm dưới dạng AllOrderModelView
 			return _mapper.Map<AllOrderModelView>(newOrder);
 		}
 
-		public void UpdateOrder(int id, UpdateOrderModelView model)
+		public async Task UpdateOrderAsync(int id, UpdateOrderModelView model)
 		{
 			//Check số lượng không được để trống và <= 0
 			if (model.Quantity <= 0)
@@ -135,7 +138,7 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check đơn hàng đó có tồn tại không
-			Order order = _unitOfWork.GetRepository<Order>().GetById(id)
+			Order order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(id)
 			?? throw new Exception("Không tìm thấy đơn hàng");
 
 			//Check đơn hàng đó đã bị xóa chưa
@@ -145,15 +148,15 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check sản phẩm đó có tồn tại không
-			Product product = _unitOfWork.GetRepository<Product>()
+			Product product = await _unitOfWork.GetRepository<Product>()
 				.Entities
-				.FirstOrDefault(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
+				.FirstOrDefaultAsync(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
 				?? throw new Exception("Sản phẩm không tồn tại");
 
 			//Check nếu Order đã có Task, không cho phép chỉnh sửa sản phẩm
-			bool hasTasks = _unitOfWork.GetRepository<Tasks>()
+			bool hasTasks = await _unitOfWork.GetRepository<Tasks>()
 				.Entities
-				.Any(t => t.OrderId == order.Id && !t.DeletedTime.HasValue);
+				.AnyAsync(t => t.OrderId == order.Id && !t.DeletedTime.HasValue);
 
 			if (hasTasks && order.ProductId != model.ProductId)
 			{
@@ -161,10 +164,10 @@ namespace XuongMay.Services.Service
 			}
 
 			//Tính tổng số lượng trong các Task của Order
-			int totalQuantity = _unitOfWork.GetRepository<Tasks>()
+			int totalQuantity = await _unitOfWork.GetRepository<Tasks>()
 				.Entities
 				.Where(t => t.OrderId == order.Id && !t.DeletedTime.HasValue)
-				.Sum(t => t.Quantity);
+				.SumAsync(t => t.Quantity);
 
 			// Check nếu Quantity của Order > tổng Quantity của các Task, thì được chỉnh sửa Quantity của Order
 			if (model.Quantity < totalQuantity)
@@ -193,18 +196,18 @@ namespace XuongMay.Services.Service
 			}
 
 			//Lấy Task đầu tiên theo StartTime (Task có thời gian bắt đầu sớm nhất)
-			Tasks? firstTask = _unitOfWork.GetRepository<Tasks>()
+			Tasks? firstTask = await _unitOfWork.GetRepository<Tasks>()
 				.Entities
 				.Where(t => t.OrderId == order.Id && !t.DeletedTime.HasValue)
 				.OrderBy(t => t.StartTime)
-				.FirstOrDefault();
+				.FirstOrDefaultAsync();
 
 			//Lấy Task cuối cùng theo EndTime (Task có thời gian kết thúc muộn nhất)
-			Tasks? lastTask = _unitOfWork.GetRepository<Tasks>()
+			Tasks? lastTask = await _unitOfWork.GetRepository<Tasks>()
 				.Entities
 				.Where(t => t.OrderId == order.Id && !t.DeletedTime.HasValue)
 				.OrderByDescending(t => t.EndTime)
-				.FirstOrDefault();
+				.FirstOrDefaultAsync();
 
 			//Check StartTime của Order <= StartTime của Task đầu tiên
 			if (firstTask != null && startTime > firstTask.StartTime)
@@ -225,14 +228,14 @@ namespace XuongMay.Services.Service
 			order.EndTime = endTime;
 
 			_unitOfWork.GetRepository<Order>().Update(order);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
 
 		}
 
-		public void DeleteOrder(int id)
+		public async Task DeleteOrderAsync(int id)
 		{
 			//Check đơn hàng có tồn tại không
-			Order order = _unitOfWork.GetRepository<Order>().GetById(id)
+			Order order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(id)
 				?? throw new Exception("Đơn hàng không tồn tại");
 
 			//Check đơn hàng có bị xóa chưa
@@ -242,9 +245,9 @@ namespace XuongMay.Services.Service
 			}
 
 			//Check còn Task trong đơn hàng hay không? Nếu còn, ko thể xóa
-			bool task = _unitOfWork.GetRepository<Tasks>()
+			bool task = await _unitOfWork.GetRepository<Tasks>()
 				.Entities
-				.Any(t => t.OrderId == order.Id && !t.DeletedTime.HasValue);
+				.AnyAsync(t => t.OrderId == order.Id && !t.DeletedTime.HasValue);
 
 			if (task)
 			{
@@ -255,7 +258,7 @@ namespace XuongMay.Services.Service
 			order.DeletedTime = CoreHelper.SystemTimeNows;
 
 			_unitOfWork.GetRepository<Order>().Update(order);
-			_unitOfWork.Save();
+			await _unitOfWork.SaveAsync();
 		}
 	}
 }

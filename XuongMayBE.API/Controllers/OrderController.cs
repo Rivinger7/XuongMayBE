@@ -31,7 +31,7 @@ namespace XuongMayBE.API.Controllers
 		{
 			try
 			{
-				var result = await _orderService.GetAllOrder(pageNumber, pageSize, isCompleted, productName);
+				var result = await _orderService.GetAllOrderAsync(pageNumber, pageSize, isCompleted, productName);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -46,11 +46,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="model"></param>
 		/// <returns></returns>
 		[HttpPost("create")]
-		public IActionResult AddOrder(AddOrderModelView model)
+		public async Task<IActionResult> AddOrder(AddOrderModelView model)
 		{
 			try
 			{
-				var result = _orderService.AddOrder(model);
+				var result = await _orderService.AddOrderAsync(model);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -66,11 +66,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="model"></param>
 		/// <returns></returns>
 		[HttpPut("update")]
-		public IActionResult UpdateOrder(int id, UpdateOrderModelView model)
+		public async Task<IActionResult> UpdateOrder(int id, UpdateOrderModelView model)
 		{
 			try
 			{
-				_orderService.UpdateOrder(id, model);
+				await _orderService.UpdateOrderAsync(id, model);
 				return Ok();
 			}
 			catch (Exception ex)
@@ -79,12 +79,17 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
+		/// <summary>
+		/// Xóa đơn hàng
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
 		[HttpDelete("delete")]
-		public IActionResult DeleteOrder(int id)
+		public async Task<IActionResult> DeleteOrder(int id)
 		{
 			try
 			{
-				_orderService.DeleteOrder(id);
+				await _orderService.DeleteOrderAsync(id);
 				return Ok();
 			}
 			catch (Exception ex)

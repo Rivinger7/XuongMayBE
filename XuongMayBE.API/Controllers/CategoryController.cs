@@ -24,11 +24,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="sortByName"></param>
 		/// <returns></returns>
 		[HttpGet("all_category")]
-		public IActionResult GetAllCategory(int? id, bool? sortByName, int pageNumber = 1, int pageSize = 3)
+		public async Task<IActionResult> GetAllCategory(int? id, bool? sortByName, int pageNumber = 1, int pageSize = 3)
 		{
 			try
 			{
-				var result = _categoryService.GetAllCategory(id, sortByName, pageNumber, pageSize);
+				var result = await _categoryService.GetAllCategoryAsync(id, sortByName, pageNumber, pageSize);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -41,11 +41,11 @@ namespace XuongMayBE.API.Controllers
 		/// Thêm danh mục mới
 		/// </summary>
 		[HttpPost("create")]
-		public IActionResult Add(AddCategoryModel model)
+		public async Task<IActionResult> Add(AddCategoryModel model)
 		{
 			try
 			{
-				var result = _categoryService.Add(model);
+				var result = await _categoryService.AddAsync(model);
 				return Ok(result);
 			}
 			catch (Exception ex)
@@ -61,11 +61,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="model"></param>
 		/// <returns></returns>
 		[HttpPut("update/{id}")]
-		public IActionResult Update(int id, AddCategoryModel model)
+		public async Task<IActionResult> Update(int id, AddCategoryModel model)
 		{
 			try
 			{
-				_categoryService.Update(id, model);
+				await _categoryService.UpdateAsync(id, model);
 				return Ok();
 			}
 			catch (Exception ex)
@@ -80,11 +80,11 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="id"></param>
 		/// <returns></returns>
 		[HttpDelete("delete")]
-		public IActionResult Delete(int id)
+		public async Task<IActionResult> Delete(int id)
 		{
 			try
 			{
-				_categoryService.Delete(id);
+				await _categoryService.DeleteAsync(id);
 				return Ok();
 			}
 			catch (Exception ex)

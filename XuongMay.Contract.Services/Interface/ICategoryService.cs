@@ -5,12 +5,12 @@ namespace XuongMay.Contract.Services.Interface
 {
 	public interface ICategoryService
 	{
-		BasePaginatedList<AllCategoryModel> GetAllCategory(int? id, bool? sortByName, int pageNumber, int pageSize);
+		Task<BasePaginatedList<AllCategoryModel>> GetAllCategoryAsync(int? id, bool? sortByName, int pageNumber, int pageSize);
 
-		AllCategoryModel Add(AddCategoryModel model);
+		Task<AllCategoryModel> AddAsync(AddCategoryModel model);
 
-		void Update(int id, AddCategoryModel model);
+		Task UpdateAsync(int id, AddCategoryModel model);
 
-		void Delete(int id);
+		Task DeleteAsync(int id);
 	}
 }

@@ -6,12 +6,12 @@ namespace XuongMay.Contract.Services.Interface
 {
 	public interface IOrderService
 	{
-		Task<BasePaginatedList<AllOrderModelView>> GetAllOrder(int pageNumber, int pageSize, bool? isCompleted, string? productName);
+		Task<BasePaginatedList<AllOrderModelView>> GetAllOrderAsync(int pageNumber, int pageSize, bool? isCompleted, string? productName);
 
-		AllOrderModelView AddOrder(AddOrderModelView model);
+		Task<AllOrderModelView> AddOrderAsync(AddOrderModelView model);
 
-		void UpdateOrder (int id, UpdateOrderModelView model);
+		Task UpdateOrderAsync (int id, UpdateOrderModelView model);
 
-		void DeleteOrder (int id);
+		Task DeleteOrderAsync (int id);
 	}
 }
