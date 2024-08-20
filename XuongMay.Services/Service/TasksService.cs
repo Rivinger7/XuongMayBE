@@ -223,5 +223,101 @@ namespace XuongMay.Services.Service
 			}
 		}
 
+		/// <summary>
+		/// Show all COMPLETED Tasks which having in DB 
+		/// </summary>
+		/// <param name="pageIndex"></param>
+		/// <param name="pageSize"></param>
+		/// <returns></returns>
+		/// <exception cref="ErrorException"></exception>
+		public async Task<BasePaginatedList<Tasks>> GetCompletedTasksAsync(int pageIndex, int pageSize)
+		{
+			DateTime now = CoreHelper.SystemTimeNows;
+			IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(tl => tl.DeletedTime == null && tl.EndTime <= now)
+																		.OrderBy(tl => tl.Id);
+			if (!await taskList.AnyAsync())
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Complete Task is stored in database" });
+			}
+
+			var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
+
+			if (paginatedTasks.Items.Count == 0)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
+			}
+
+			return paginatedTasks;
+		}
+
+		/// <summary>
+		/// Show all INCOMPLETED Tasks which having in DB 
+		/// </summary>
+		/// <param name="pageIndex"></param>
+		/// <param name="pageSize"></param>
+		/// <returns></returns>
+		/// <exception cref="ErrorException"></exception>
+		public async Task<BasePaginatedList<Tasks>> GetIncompletedTasksAsync(int pageIndex, int pageSize)
+		{
+			DateTime now = CoreHelper.SystemTimeNows;
+			IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(tl => tl.DeletedTime == null && tl.EndTime > now)
+																		.OrderBy(tl => tl.Id);
+			if (!await taskList.AnyAsync())
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Incompleted Task is stored in database" });
+			}
+
+			var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
+
+			if (paginatedTasks.Items.Count == 0)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
+			}
+
+			return paginatedTasks;
+		}
+
+		/// <summary>
+		/// Show all Tasks which having in DB for given orderId
+		/// </summary>
+		/// <param name="pageIndex"></param>
+		/// <param name="pageSize"></param>
+		/// <param name="orderId"></param>
+		/// <returns></returns>
+		/// <exception cref="ErrorException"></exception>
+		public async Task<BasePaginatedList<Tasks>> GetTasksByOrderIdAsync(int pageIndex, int pageSize, int orderId)
+		{
+			bool isExistOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.Id == orderId);
+			if (!isExistOrder)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "The Order can not found!" });
+			}						  
+			DateTime now = CoreHelper.SystemTimeNows;
+			IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>().Entities
+																		.Where(tl => tl.DeletedTime == null && tl.OrderId == orderId)
+																		.OrderBy(tl => tl.Id);
+			if (!await taskList.AnyAsync())
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Task for this Order." });
+			}
+
+			var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
+
+			if (paginatedTasks.Items.Count == 0)
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound,
+										new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
+			}
+
+			return paginatedTasks;
+		}
 	}
 }
