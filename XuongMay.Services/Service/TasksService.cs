@@ -2,6 +2,7 @@
 using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.Core;
@@ -31,7 +32,7 @@ namespace XuongMay.Services.Service
 		/// <param name="orderId"></param>
 		/// <returns></returns>
 		/// <exception cref="ErrorException"></exception>
-		public async Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId)
+		public async Task<BasePaginatedList<TasksGettingModel>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId)
 		{
 			IQueryable<Tasks> taskList = _unitOfWork.GetRepository<Tasks>().Entities
 																		.Where(tl => tl.DeletedTime == null)
@@ -54,14 +55,13 @@ namespace XuongMay.Services.Service
 				taskList = taskList.Where(tl => tl.OrderId == orderId); //các task thuộc order có id đã nhập
 			}
 
-
 			if (!await taskList.AnyAsync())
 			{
 				throw new ErrorException(StatusCodes.Status404NotFound,
 										new ErrorDetail() { ErrorMessage = "No Task is stored in database" });
 			}
 
-			var paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
+			BasePaginatedList<Tasks> paginatedTasks = await _unitOfWork.GetRepository<Tasks>().GetPagging(taskList, pageIndex, pageSize);
 
 			if (paginatedTasks.Items.Count == 0)
 			{
@@ -69,7 +69,9 @@ namespace XuongMay.Services.Service
 										new ErrorDetail() { ErrorMessage = "No Task found for the current page" });
 			}
 
-			return paginatedTasks;
+			BasePaginatedList<TasksGettingModel> bpl = _mapper.Map<BasePaginatedList<Tasks>, BasePaginatedList<TasksGettingModel>>(paginatedTasks);
+
+			return bpl;
 		}
 
 		/// <summary>
@@ -78,31 +80,27 @@ namespace XuongMay.Services.Service
 		/// <param name="taskId"></param>
 		/// <returns></returns>
 		/// <exception cref="ErrorException"></exception>
-		public async Task<TasksModel> GetTaskByIdAsync(int taskId)
+		public async Task<TasksGettingModel> GetTaskByIdAsync(int taskId)
 		{
-			var task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId);
-
-			// Check if task is null or deleted
-			if (task == null || task.DeletedTime != null)
-			{
-				throw new ErrorException(StatusCodes.Status404NotFound,
-										new ErrorDetail() { ErrorMessage = "Cannot find any Task by this Id!" });
-			}
-
+			Tasks task = await _unitOfWork.GetRepository<Tasks>().Entities.FirstOrDefaultAsync(t => t.Id == taskId && t.DeletedTime == null)
+																		?? throw new ErrorException(StatusCodes.Status404NotFound,
+																									new ErrorDetail() { ErrorMessage = "Cannot find any Task by this Id!" });
 			// Map the task to a model (if needed)
-			TasksModel tasksModel = _mapper.Map<Tasks, TasksModel>(task);
+			return _mapper.Map<Tasks, TasksGettingModel>(task);
 
-			return tasksModel;
 		}
-
 
 		/// <summary>
 		/// Add a new Task with information from TasksCreateModel
 		/// </summary>
 		/// <param name="taskModel"></param>
 		/// <returns></returns>
-		public async Task AddNewTaskAsync (TasksGeneralModel taskModel)
+		public async Task AddNewTaskAsync (TasksUpdatingModel taskModel)
 		{
+			DateTime startTimeTasksModel = DateTime.ParseExact(taskModel.StartTime, "HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+			DateTime endTimeTasksModel = DateTime.ParseExact(taskModel.EndTime, "HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture);
+
 			var order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(taskModel.OrderId) 
 										 ?? throw new ErrorException(StatusCodes.Status404NotFound,
 																	new ErrorDetail() { ErrorMessage = "The Order can not found!"});
@@ -113,15 +111,13 @@ namespace XuongMay.Services.Service
 
 			var tasksInSameAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
 														   .Entities
-														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId 
-																					&& taskModel.StartTime >= t.StartTime 
-																					&& taskModel.EndTime <= t.EndTime);
+														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId
+																					&& ((startTimeTasksModel > t.StartTime && startTimeTasksModel < t.EndTime)
+																						|| (endTimeTasksModel > t.StartTime && endTimeTasksModel < t.EndTime)));
 
-			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfTasks(taskModel.OrderId);
+			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfOtherTasks(taskModel.OrderId);
 
-			Console.WriteLine("sumOfQuantityInOtherTasks: " + sumOfQuantityInOtherTasks);
-
-			CheckValidateTask(taskModel, order, assemblyLine, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks);
+			CheckValidateTask(taskModel, order, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks, startTimeTasksModel, endTimeTasksModel);
 
 			Tasks task = new Tasks()
 			{
@@ -130,17 +126,28 @@ namespace XuongMay.Services.Service
 				Title = taskModel.Title,
 				Description = taskModel.Description,
 				Quantity = taskModel.Quantity,
-				StartTime = taskModel.StartTime,
-				EndTime = taskModel.EndTime
+				StartTime = startTimeTasksModel,
+				EndTime = endTimeTasksModel
 			};
 
 			await _unitOfWork.GetRepository<Tasks>().InsertAsync(task);
 			await _unitOfWork.SaveAsync();
 		}
 
-		public async Task UpdateTaskAsync (int taskId,TasksGeneralModel taskModel)
+		/// <summary>
+		/// Update the Task with Id by information from TasksUpdatingModel
+		/// </summary>
+		/// <param name="taskId"></param>
+		/// <param name="taskModel"></param>
+		/// <returns></returns>
+		/// <exception cref="ErrorException"></exception>
+		public async Task UpdateTaskAsync (int taskId,TasksUpdatingModel taskModel)
 		{
-			var task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId)
+			DateTime startTimeTasksModel = DateTime.ParseExact(taskModel.StartTime, "HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+			DateTime endTimeTasksModel = DateTime.ParseExact(taskModel.EndTime, "HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+			var task = await _unitOfWork.GetRepository<Tasks>().Entities.FirstOrDefaultAsync(t => t.Id == taskId && t.DeletedTime == null)
 										 ?? throw new ErrorException(StatusCodes.Status404NotFound,
 																	new ErrorDetail() { ErrorMessage = "The Task can not found!" });
 
@@ -152,23 +159,23 @@ namespace XuongMay.Services.Service
 												 ?? throw new ErrorException(StatusCodes.Status404NotFound,
 																			new ErrorDetail() { ErrorMessage = "The Assembly Line can not found!" });
 
-			var tasksInSameAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
+			var tasksInOtherAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
 														   .Entities
 														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId
-																					&& taskModel.StartTime >= t.StartTime
-																					&& taskModel.EndTime <= t.EndTime);
+																					&& ((startTimeTasksModel > t.StartTime && startTimeTasksModel < t.EndTime)
+																						|| (endTimeTasksModel > t.StartTime && endTimeTasksModel < t.EndTime))); 
 
-			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfTasks(taskModel.OrderId);
+			var sumOfQuantityInOtherTasks = await GetTotalQuantityOfOtherTasks(taskModel.OrderId);
 
-			CheckValidateTask(taskModel, order, assemblyLine, tasksInSameAssemblyLine, sumOfQuantityInOtherTasks);
+			CheckValidateTask(taskModel, order, tasksInOtherAssemblyLine, sumOfQuantityInOtherTasks, startTimeTasksModel, endTimeTasksModel);
 
 			task.OrderId = taskModel.OrderId;
 			task.AssemblyLineId = taskModel.AssemblyLineId;
 			task.Title = taskModel.Title;
 			task.Description = taskModel.Description;
 			task.Quantity = taskModel.Quantity;
-			task.StartTime = taskModel.StartTime;
-			task.EndTime = taskModel.EndTime;
+			task.StartTime = startTimeTasksModel;
+			task.EndTime = endTimeTasksModel;
 			task.LastUpdatedTime = CoreHelper.SystemTimeNows;
 
 			await _unitOfWork.GetRepository<Tasks>().UpdateAsync(task);
@@ -184,13 +191,21 @@ namespace XuongMay.Services.Service
 		public async Task DeleteTaskAsync (int taskId)
 		{
 			//get Task by taskId and if it null (not exist in DB) => throw exception
-			var task = _unitOfWork.GetRepository<Tasks>().GetById(taskId)
+			var task = await _unitOfWork.GetRepository<Tasks>().GetByIdAsync(taskId)
 														?? throw new ErrorException(StatusCodes.Status404NotFound,
 														new ErrorDetail () { ErrorMessage = "Can not find Task by this Id!"});
-			if(task.DeletedTime != null)
+			//throw exception if Task having deleted time
+			if(task.DeletedTime.HasValue)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,
-														new ErrorDetail() { ErrorMessage = "This task is not exist!" });
+													new ErrorDetail() { ErrorMessage = "This task does not exist!" });
+			}
+
+			//if the start time less than time call this method, not allow to execute 
+			if (task.StartTime < CoreHelper.SystemTimeNows)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+													new ErrorDetail() { ErrorMessage = "This task has started, can not be deleted!" });
 			}
 			//set deleted time is now
 			task.DeletedTime = CoreHelper.SystemTimeNows;
@@ -203,40 +218,58 @@ namespace XuongMay.Services.Service
 		}
 
 
-
-		private async Task<int> GetTotalQuantityOfTasks(int orderId)
+		private async Task<int> GetTotalQuantityOfOtherTasks(int orderId)
 		{
+			//Sum of quantity of all Tasks in an Order
 			return await _unitOfWork.GetRepository<Tasks>().Entities
 														.Where(t => t.OrderId == orderId)
 														.SumAsync(t => t.Quantity);
 		}
 
-		private void CheckValidateTask(TasksGeneralModel taskModel ,Order order, AssemblyLine assemblyLine, Tasks tasksInSameAssemblyLine, int sumOfQuantityInOtherTasks)
+		private void CheckValidateTask(TasksUpdatingModel taskModel ,Order order, Tasks tasksInSameAssemblyLine, int sumOfQuantityInOtherTasks, DateTime startTimeTasksModel, DateTime endTimeTasksModel)
 		{
-			if (taskModel.StartTime < order.StartTime)
+			// Trường hợp: thời gian bắt đầu Task được gán trước thời gian bắt đầu của Order
+			if (startTimeTasksModel < order.StartTime)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,
 										new ErrorDetail() { ErrorMessage = "The Start Time must be after the Order Start Time!" });
 			}
 
-			if (taskModel.StartTime > taskModel.EndTime)
+			// Trường hợp: thời gian bắt đầu Task sau thời gian kết thúc
+			if (startTimeTasksModel > endTimeTasksModel)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,
 										new ErrorDetail() { ErrorMessage = "The End Time must be greater than Start Time" });
 			}
 
-			if (taskModel.StartTime >= order.EndTime || taskModel.EndTime >= order.EndTime)
+			// Trường hợp: thời gian bắt đầu hoặc thời gian kết thúc vượt quá deadline của order
+			if (startTimeTasksModel >= order.EndTime || endTimeTasksModel >= order.EndTime)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,
 										new ErrorDetail() { ErrorMessage = "Exceeding the deadline time allowed in the Order" });
 			}
 
+			// Trường hợp: Task này có thời gian trùng hoặc nằm trong một Task khác trong cùng một dây chuyền (assembly line)
 			if (tasksInSameAssemblyLine != null)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,
 										new ErrorDetail() { ErrorMessage = "This Task has time incuding in other Task which having same assembly line" });
 			}
 
+			if (string.IsNullOrWhiteSpace(taskModel.Title))
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "The title must have at least 1 character!" });
+			}
+
+			// Trường hợp: số lượng của Task này vượt quá số lượng của Order
+			if (taskModel.Quantity <= 0)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest,
+										new ErrorDetail() { ErrorMessage = "Please enter quantity greater than 0!" });
+			}
+
+			// Trường hợp: tổng số lượng của các Task khác và Task này của một Order cụ thể vượt quá số lượng của Order đó
 			if (sumOfQuantityInOtherTasks + taskModel.Quantity > order.Quantity)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest,

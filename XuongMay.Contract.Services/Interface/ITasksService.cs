@@ -6,10 +6,10 @@ namespace XuongMay.Contract.Services.Interface
 {
 	public interface ITasksService
 	{
-		Task<BasePaginatedList<Tasks>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId);
-		Task<TasksModel> GetTaskByIdAsync(int taskId);
-		Task AddNewTaskAsync(TasksGeneralModel taskModel);
-		Task UpdateTaskAsync(int taskId, TasksGeneralModel taskModel);
+		Task<BasePaginatedList<TasksGettingModel>> GetAllTaskAsync(int pageIndex, int pageSize, bool? isCompleted, int? orderId);
+		Task<TasksGettingModel> GetTaskByIdAsync(int taskId);
+		Task AddNewTaskAsync(TasksUpdatingModel taskModel);
+		Task UpdateTaskAsync(int taskId, TasksUpdatingModel taskModel);
 		Task DeleteTaskAsync(int taskId);
 	}
 }

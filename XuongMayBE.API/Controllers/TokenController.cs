@@ -1,10 +1,9 @@
-﻿using GarmentFactory.Repository.Context;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
-using XuongMay.Core.Utils;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.JwtModelViews;
+using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMayBE.API.Controllers
 {
@@ -26,16 +25,27 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="tokenApiModel"></param>
 		/// <returns></returns>
 		[AllowAnonymous]
-		[HttpPost("refresh_token")]
+		[HttpPost("refresh")]
 		public async Task<IActionResult> RefreshAccessToken(TokenApiModelView tokenApiModel)
 		{
-			//Call method to refresh access token and get 2 results newAccessToken and newRefreshToken
-			_jwtService.RefreshAccessToken(out string newAccessToken, out string newRefreshToken, tokenApiModel);
-			return Ok(new AuthenticatedResponseModelView()
+			try
 			{
-				AccessToken = newAccessToken,
-				RefreshToken = newRefreshToken
-			});
+				//Call method to refresh access token and get 2 results newAccessToken and newRefreshToken
+				_jwtService.RefreshAccessToken(out string newAccessToken, out string newRefreshToken, tokenApiModel);
+				return Ok(new AuthenticatedResponseModelView()
+				{
+					AccessToken = newAccessToken,
+					RefreshToken = newRefreshToken
+				});
+			}
+			catch (ErrorException eex)
+			{
+				return StatusCode(eex.StatusCode, eex.ErrorDetail);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, "An server error occurred while processing your request.");
+			}
 		}
 
 
@@ -46,9 +56,20 @@ namespace XuongMayBE.API.Controllers
 		[HttpPost("revoke")]
 		public async Task<IActionResult> Revoke()
 		{
-			var Id = User.Identity.Name; //get username from claim in token
-			_jwtService.RevokeToken(Id);
-			return NoContent();
+			try
+			{
+				var Id = User.Identity.Name; //get username from claim in token
+				_jwtService.RevokeToken(Id);
+				return NoContent();
+			}
+			catch (ErrorException eex)
+			{
+				return StatusCode(eex.StatusCode, eex.ErrorDetail);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, "An server error occurred while processing your request.");
+			}
 		}
 
 	}

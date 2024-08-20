@@ -3,7 +3,7 @@
 
 namespace XuongMay.ModelViews.TasksModelViews
 {
-	public class TasksGeneralModel
+	public class TasksUpdatingModel
 	{
 		[Required(ErrorMessage = "* Order Id can not be empty")]
 		public int OrderId { get; set; }
@@ -20,9 +20,11 @@ namespace XuongMay.ModelViews.TasksModelViews
 		public int Quantity { get; set; }
 
 		[Required(ErrorMessage = "* Please enter start time !")]
-		public DateTime StartTime { get; set; }
+		[RegularExpression(@"^(?:[01]\d|2[0-3]):[0-5]\d \d{2}/\d{2}/\d{4}$", ErrorMessage = "* Start time must be in the format HH:mm dd/MM/yyyy!")]
+		public required string StartTime { get; set; }
 
 		[Required(ErrorMessage = "* Please enter end time !")]
-		public DateTime EndTime { get; set; }
+		[RegularExpression(@"^(?:[01]\d|2[0-3]):[0-5]\d \d{2}/\d{2}/\d{4}$", ErrorMessage = "* End time must be in the format HH:mm dd/MM/yyyy!")]
+		public required string EndTime { get; set; }
 	}
 }

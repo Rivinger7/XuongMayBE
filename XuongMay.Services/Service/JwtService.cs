@@ -163,9 +163,11 @@ namespace XuongMay.Services.Service
 			string Id = principal.Identity.Name; //this is mapped to the Name claim by default
 
 			//get user 
-			var user = _unitOfWork.GetRepository<User>().GetById(Int32.Parse(Id));
+			var user = _unitOfWork.GetRepository<User>().GetById(Int32.Parse(Id))
+														?? throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail()
+														{ ErrorMessage = "Refresh token is incorrect or user is invalid!" });
 
-			if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= CoreHelper.SystemTimeNows)
+			if ( user.RefreshToken == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= CoreHelper.SystemTimeNows)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "Refresh token is incorrect or user is invalid!" });
 			}

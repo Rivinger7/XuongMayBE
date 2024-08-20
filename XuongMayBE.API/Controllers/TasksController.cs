@@ -1,11 +1,7 @@
-﻿using GarmentFactory.Contract.Repositories.Entity;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using XuongMay.Contract.Services.Interface;
-using XuongMay.Core;
 using XuongMay.ModelViews.TasksModelViews;
 using static XuongMay.Core.Base.BaseException;
 
@@ -28,13 +24,13 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns>A correlative Task</returns>
-		[HttpGet("get_by_id/{id}")]
+		[HttpGet("{id}")]
 		public async Task<IActionResult> Get(int id)
 		{
 			try
 			{
 				//Call method to check get a task
-				TasksModel task = await _taskService.GetTaskByIdAsync(id);
+				TasksGettingModel task = await _taskService.GetTaskByIdAsync(id);
 				return Ok(task);
 			}
 			catch (ErrorException ex)
@@ -44,7 +40,10 @@ namespace XuongMayBE.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.StackTrace);
+				var log = new LoggerConfiguration()
+								.WriteTo.Console(theme: AnsiConsoleTheme.Literate)
+								.CreateLogger();
+				log.Error($"{ex}");
 				return StatusCode(StatusCodes.Status500InternalServerError, "An server error occurred while processing your request.");
 			}
 		}
@@ -57,7 +56,7 @@ namespace XuongMayBE.API.Controllers
 		/// <param name="isCompleted"></param>
 		/// <param name="orderId"></param>
 		/// <returns>The amount of Task with pageSize and pageIndex</returns>
-		[HttpGet("get_tasks")]
+		[HttpGet]
 		public async Task<IActionResult> GetTasks(int pageIndex = 1, int pageSize = 10, bool? isCompleted = null, int? orderId = null)
 		{
 			try
@@ -83,8 +82,8 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="taskModel"></param>
 		/// <returns></returns>
-		[HttpPost("add")]
-		public async Task<IActionResult> Add(TasksGeneralModel taskModel)
+		[HttpPost]
+		public async Task<IActionResult> Add(TasksUpdatingModel taskModel)
 		{
 			try
 			{
@@ -106,7 +105,7 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="id"></param>
 		/// <returns>Status 200 if success</returns>
-		[HttpDelete("delete/{id}")]
+		[HttpDelete("{id}")]
 		public async Task<IActionResult> Delete(int id)
 		{
 			try
@@ -131,8 +130,8 @@ namespace XuongMayBE.API.Controllers
 		/// </summary>
 		/// <param name="taskId"></param>
 		/// <returns></returns>
-		[HttpPut("update/{id}")]
-		public async Task<IActionResult> Update(int id, TasksGeneralModel taskModel)
+		[HttpPut("{id}")]
+		public async Task<IActionResult> Update(int id, TasksUpdatingModel taskModel)
 		{
 			try
 			{
