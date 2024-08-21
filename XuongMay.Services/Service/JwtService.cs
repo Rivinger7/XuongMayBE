@@ -35,10 +35,13 @@ namespace XuongMay.Services.Service
 		{
 			int expireMinutes = 60; //set default expire time is 60 minutes
 
+			//get secret key from appsettings.json
 			var secretKey = _config.GetSection("Jwt:SecretKey").Value;
 
+			//convert secret key to byte array
 			var symmetricKey = Encoding.UTF8.GetBytes(secretKey);
 
+			//create token with JwtSecurityTokenHandler
 			var tokenHandler = new JwtSecurityTokenHandler();
 
 			var tokenDescriptor = new JwtSecurityToken(
@@ -65,9 +68,13 @@ namespace XuongMay.Services.Service
 		/// <returns></returns>
 		private string GenerateRefreshToken()
 		{
+			//generate random number for refresh token
 			var randomNumber = new byte[32];
+
+			//use RandomNumberGenerator to create random number
 			using(var rng = RandomNumberGenerator.Create())
 			{
+				//get random number and convert to base64 string
 				rng.GetBytes(randomNumber);
 				return Convert.ToBase64String(randomNumber);
 			}
@@ -81,6 +88,7 @@ namespace XuongMay.Services.Service
 		/// <exception cref="SecurityTokenException"></exception>
 		private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
 		{
+			//set token validation parameters
 			TokenValidationParameters tokenValidationParameters = new()
 			{
 				ValidateAudience = false,
@@ -94,10 +102,13 @@ namespace XuongMay.Services.Service
 				ValidateLifetime = false //this field not need to check validate because we just want to get principal from that token
 			};
 
+			//get principal from token from tokenValidationParameters (information Claim in here)
 			var tokenHandler = new JwtSecurityTokenHandler();
 			SecurityToken securityToken;
 			var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
 			var jwtSecurityToken = securityToken as JwtSecurityToken;
+
+			//check if token is null or not and compare algorithm
 			if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256Signature, StringComparison.InvariantCultureIgnoreCase))
 			{
 				//throw exception if information in token is invalid
@@ -116,16 +127,20 @@ namespace XuongMay.Services.Service
 		/// <param name="refreshToken"></param>
 		public void GenerateAccessToken(IEnumerable<Claim> claims, int Id, out string accessToken, out string refreshToken)
 		{
+			//generate access token and refresh token
 			accessToken = GenerateAccessToken(claims);
 
 			refreshToken = GenerateRefreshToken();
 
+			//get user by Id
 			var user = _unitOfWork.GetRepository<User>().GetById(Id);
 
+			//set refresh token, expirytime for refreshtoken to user and save to database
 			user.RefreshToken = refreshToken;
 
 			user.RefreshTokenExpiryTime = CoreHelper.SystemTimeNows.AddMinutes(10);
 
+			//save to database
 			_unitOfWork.GetRepository<User>().Save();
 		}
 
@@ -164,9 +179,10 @@ namespace XuongMay.Services.Service
 
 			//get user 
 			var user = _unitOfWork.GetRepository<User>().GetById(Int32.Parse(Id))
-														?? throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail()
-														{ ErrorMessage = "Refresh token is incorrect or user is invalid!" });
+														?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail()
+														{ ErrorMessage = "The user is not found" });
 
+			//check valid for refresh token and expiry time
 			if ( user.RefreshToken == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= CoreHelper.SystemTimeNows)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "Refresh token is incorrect or user is invalid!" });
