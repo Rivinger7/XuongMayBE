@@ -295,35 +295,5 @@ namespace XuongMayBE.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Soft Deletes a user by username
-        /// </summary>
-        /// <param name="username"></param>
-        /// <returns>
-        /// An IActionResult indicating the result of the soft delete operation.
-        /// Returns an Ok response if the user is soft deleted successfully.
-        /// Returns a BadRequest if the provided username is invalid or the user could not be found.
-        /// Returns an Internal Server Error if an unexpected error occurs. 
-        /// </returns>
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        [HttpDelete("{username}")]
-        public async Task<IActionResult> DeleteUserByUsername(string username)
-        {
-            try
-            {
-                await _userService.DeleteUserByUsernameAsync(username);
-
-                return Ok(new { message = "Delete User Successfully" });
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(new { message = aex.Message });
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
-            }
-        }
     }
 }

@@ -3,10 +3,9 @@ using GarmentFactory.Contract.Repositories.Entity;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.Core.Utils;
-using XuongMay.ModelViews.UserModelViews;
 using XuongMay.Contract.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace XuongMay.Services.Service
 {
@@ -14,16 +13,16 @@ namespace XuongMay.Services.Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IJwtService _jwtService;
 
-        public AuthenticationService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public AuthenticationService(IUnitOfWork unitOfWork, IMapper mapper, IJwtService jwtService)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
+            _jwtService = jwtService;
         }
 
-        public async Task<UserResponseModel> AuthenticateUserAsync(LoginModelView loginModelView)
+        public async Task<AuthenticatedResponseModelView> AuthenticateUserAsync(LoginModelView loginModelView)
         {
             // Assign value
             string username = loginModelView.Username;
@@ -37,16 +36,25 @@ namespace XuongMay.Services.Service
             {
                 throw new ArgumentException("Username or Password is incorrect");
             }
-            
+
             // JWT
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, retrieveUser.Id.ToString()),
+                    new Claim(ClaimTypes.Role, retrieveUser.Role)
+                };
 
-            // Store user id in Session
-            //_httpContextAccessor.HttpContext.Session.SetString("UserID", retrieveUser.Id.ToString());
+            //Call method to generate access token
+            _jwtService.GenerateAccessToken(claims, retrieveUser.Id, out string accessToken, out string refreshToken);
 
-            // Map the User entities to UserResponseModel
-            UserResponseModel userModel = _mapper.Map<User, UserResponseModel>(retrieveUser);
+            // New object ModelView
+            AuthenticatedResponseModelView authenticationModel = new()
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
 
-            return userModel;
+            return authenticationModel;
         }
 
         public async Task RegisterUserAsync(RegisterModelView registerModelView)

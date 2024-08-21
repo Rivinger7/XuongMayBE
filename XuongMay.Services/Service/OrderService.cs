@@ -83,33 +83,33 @@ namespace XuongMay.Services.Service
 			//Check số lượng không được để trống và <= 0
 			if (model.Quantity <= 0)
 			{
-				throw new Exception("Số lượng đơn hàng phải lớn hơn 0.");
+				throw new Exception("Order quantity must be greater than 0.");
 			}
 
 			//Check sản phẩm đã tồn tại chưa
 			Product? existingProduct = await _unitOfWork.GetRepository<Product>()
 				.Entities
 				.FirstOrDefaultAsync(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
-				?? throw new Exception("Sản phẩm không tồn tại.");
+				?? throw new Exception("Product does not exist.");
 
 			//Check StartTime & EndTime không được để trống 
 			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
 			{
-				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+				throw new Exception("Start times and End times cannot be empty.");
 			}
-			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
-			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Time entered in incorrect format HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Time entered in incorrect format HH:mm dd/MM/yyyy.");
 
 			//Check thời gian bắt đầu < thời gian kết thúc
 			if (startTime >= endTime)
 			{
-				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
+				throw new Exception("Please enter start time less than end time.");
 			}
 
 			//Check thời gian bắt đầu > thời gian hiện tại
 			if (startTime <= CoreHelper.SystemTimeNows)
 			{
-				throw new Exception("Thời gian bắt đầu phải lớn hơn thời gian hiện tại.");
+				throw new Exception("Start time must be greater than current time.");
 			}
 
 			//Tạo đơn hàng mới
@@ -134,24 +134,24 @@ namespace XuongMay.Services.Service
 			//Check số lượng không được để trống và <= 0
 			if (model.Quantity <= 0)
 			{
-				throw new Exception("Số lượng đơn hàng phải lớn hơn 0");
+				throw new Exception("Order quantity must be greater than 0");
 			}
 
 			//Check đơn hàng đó có tồn tại không
 			Order order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(id)
-			?? throw new Exception("Không tìm thấy đơn hàng");
+			?? throw new Exception("Order not found");
 
 			//Check đơn hàng đó đã bị xóa chưa
 			if (order.DeletedTime.HasValue)
 			{
-				throw new Exception("Không tìm thấy đơn hàng");
+				throw new Exception("Order not found");
 			}
 
 			//Check sản phẩm đó có tồn tại không
 			Product product = await _unitOfWork.GetRepository<Product>()
 				.Entities
 				.FirstOrDefaultAsync(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
-				?? throw new Exception("Sản phẩm không tồn tại");
+				?? throw new Exception("Product does not exist");
 
 			//Check nếu Order đã có Task, không cho phép chỉnh sửa sản phẩm
 			bool hasTasks = await _unitOfWork.GetRepository<Tasks>()
@@ -160,7 +160,7 @@ namespace XuongMay.Services.Service
 
 			if (hasTasks && order.ProductId != model.ProductId)
 			{
-				throw new Exception("Không thể thay đổi sản phẩm vì đơn hàng đã có nhiệm vụ được giao.");
+				throw new Exception("The product cannot be changed because the order has been assigned.");
 			}
 
 			//Tính tổng số lượng trong các Task của Order
@@ -172,27 +172,27 @@ namespace XuongMay.Services.Service
 			// Check nếu Quantity của Order > tổng Quantity của các Task, thì được chỉnh sửa Quantity của Order
 			if (model.Quantity < totalQuantity)
 			{
-				throw new Exception("Số lượng đơn hàng phải lớn hơn hoặc bằng tổng số lượng trong các nhiệm vụ");
+				throw new Exception("The order quantity must be greater than or equal to the total quantity in the tasks.");
 			}
 
 			//Check StartTime & EndTime không được để trống 
 			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
 			{
-				throw new Exception("Thời gian bắt đầu và kết thúc không được trống.");
+				throw new Exception("Start times and End times cannot be empty.");
 			}
-			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
-			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Nhập thời gian không đúng định dạng HH:mm dd/MM/yyyy.");
+			DateTime startTime = TimeHelper.ConvertStringToDateTime(model.StartTime) ?? throw new Exception("Time entered in incorrect format HH:mm dd/MM/yyyy.");
+			DateTime endTime = TimeHelper.ConvertStringToDateTime(model.EndTime) ?? throw new Exception("Time entered in incorrect format HH:mm dd/MM/yyyy.");
 
 			//Check thời gian bắt đầu < thời gian kết thúc
 			if (startTime >= endTime)
 			{
-				throw new Exception("Vui lòng điền thời gian bắt đầu nhỏ hơn thời gian kết thúc.");
+				throw new Exception("Please enter start time less than end time.");
 			}
 
 			//Check StartTime >= CreateTime
 			if (startTime < order.CreatedTime)
 			{
-				throw new Exception("Thời gian bắt đầu phải lớn hơn thời gian tạo đơn hàng.");
+				throw new Exception("Start time must be greater than order creation time.");
 			}
 
 			//Lấy Task đầu tiên theo StartTime (Task có thời gian bắt đầu sớm nhất)
@@ -212,13 +212,13 @@ namespace XuongMay.Services.Service
 			//Check StartTime của Order <= StartTime của Task đầu tiên
 			if (firstTask != null && startTime > firstTask.StartTime)
 			{
-				throw new Exception("Thời gian bắt đầu của đơn hàng phải nhỏ hơn hoặc bằng thời gian bắt đầu của nhiệm vụ đầu tiên.");
+				throw new Exception("The Start time of the order must be less than or equal to the start time of the first task.");
 			}
 
 			// Check EndTime của Order > EndTime của Task cuối cùng
 			if (lastTask != null && endTime <= lastTask.EndTime)
 			{
-				throw new Exception("Thời gian kết thúc của đơn hàng phải lớn hơn thời gian kết thúc của nhiệm vụ cuối cùng.");
+				throw new Exception("The End time of the order must be greater than to the end time of the last task.");
 			}
 
 			//Cập nhật và lưu đơn hàng
@@ -236,12 +236,12 @@ namespace XuongMay.Services.Service
 		{
 			//Check đơn hàng có tồn tại không
 			Order order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(id)
-				?? throw new Exception("Đơn hàng không tồn tại");
+				?? throw new Exception("Order does not exist");
 
 			//Check đơn hàng có bị xóa chưa
 			if (order.DeletedTime.HasValue)
 			{
-				throw new Exception("Đơn hàng không tồn tại");
+				throw new Exception("Order does not exist");
 			}
 
 			//Check còn Task trong đơn hàng hay không? Nếu còn, ko thể xóa
@@ -251,7 +251,7 @@ namespace XuongMay.Services.Service
 
 			if (task)
 			{
-				throw new Exception("Không thể xóa vì vẫn còn nhiệm vụ trong đơn hàng này");
+				throw new Exception("Cannot delete because there are still tasks on this order");
 			}
 
 			//Xóa mềm

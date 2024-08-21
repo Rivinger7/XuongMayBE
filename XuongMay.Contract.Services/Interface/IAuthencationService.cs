@@ -12,6 +12,6 @@ namespace XuongMay.Contract.Services.Interface
     public interface IAuthencationService
     {
         Task RegisterUserAsync(RegisterModelView registerModelView);
-        Task<UserResponseModel> AuthenticateUserAsync(LoginModelView loginModelView);
+        Task<AuthenticatedResponseModelView> AuthenticateUserAsync(LoginModelView loginModelView);
     }
 }

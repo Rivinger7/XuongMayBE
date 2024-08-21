@@ -22,7 +22,7 @@ namespace XuongMay.Services.Service
 		public async Task<ResponseProductModel> GetProductAsync(int id)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Prodcut can not found!");
 			return _mapper.Map<ResponseProductModel>(product);
 		}
 
@@ -86,25 +86,25 @@ namespace XuongMay.Services.Service
 			// Kiểm tra tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
 			{
-				throw new Exception("Vui lòng nhập tên sản phẩm.");
+				throw new Exception("Please enter product name!");
 			}
 			// Kiểm tra categoryId không được để trống
 			if (string.IsNullOrWhiteSpace(model.CategoryId.ToString()))
 			{
-				throw new Exception("Vui lòng chọn thể loại.");
+				throw new Exception("Please select a category!");
 			}
             // Kiểm tra sản phẩm đã tồn tại hay chưa
 			var products = await _unitOfWork.GetRepository<Product>().Entities.ToListAsync();
 			bool isExistProduct = products.Any(p => p.Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase) && !p.DeletedTime.HasValue);
 			if (isExistProduct)
 			{
-				throw new Exception("Sản phẩm có tên " + model.Name + " đã tồn tại.");
+				throw new Exception("Entered name already exists!");
 			}
 			// Kiểm tra categoryId phải tồn tại trong Category
 			bool isExistCategory = await _unitOfWork.GetRepository<Category>().Entities.AnyAsync(c => c.Id == model.CategoryId && !c.DeletedTime.HasValue);
 			if (!isExistCategory)
 			{
-				throw new Exception("Không tìm thấy thể loại có id " + model.CategoryId + " .");
+				throw new Exception("The Category can not found!");
 			}
 			// Lưu sản phẩm vào DB
 			Product newProduct = _mapper.Map<Product>(model);
@@ -120,30 +120,30 @@ namespace XuongMay.Services.Service
 		public async Task<ResponseProductModel> UpdateProductAsync(int id, CreateProductModel model)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Prodcut can not found!");
 
 			// Kiểm tra tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
 			{
-				throw new Exception("Vui lòng nhập tên sản phẩm.");
+				throw new Exception("Please enter product name!");
 			}
 			// Kiểm tra categoryId không được để trống
 			if (string.IsNullOrWhiteSpace(model.CategoryId.ToString()))
 			{
-				throw new Exception("Vui lòng chọn thể loại.");
+				throw new Exception("Please select a category!");
 			}
 			// Kiểm tra tên mới của sản phẩm có bị trùng tên sản phẩm khác
 			var products = await _unitOfWork.GetRepository<Product>().Entities.ToListAsync();
 			bool isExistProductName = products.Any(p => p.Name.Equals(model.Name, StringComparison.OrdinalIgnoreCase) && !p.DeletedTime.HasValue && p.Id != id);
 			if (isExistProductName)
 			{
-				throw new Exception("Sản phẩm khác có tên " + model.Name + " đã tồn tại.");
+				throw new Exception("Entered name already exists!");
 			}
 			// Kiểm tra categoryId phải tồn tại trong Category
 			bool isExistCategory = await _unitOfWork.GetRepository<Category>().Entities.AnyAsync(c => c.Id == model.CategoryId && !c.DeletedTime.HasValue);
 			if (!isExistCategory)
 			{
-				throw new Exception("Không tìm thấy thể loại có id " + model.CategoryId + " .");
+				throw new Exception("The Category can not found!");
 			}
 			//Cập nhật và lưu sản phẩm vào db
 			_mapper.Map(model, product);
@@ -158,7 +158,7 @@ namespace XuongMay.Services.Service
 		public async Task<ResponseProductModel> DeleteProductAsync(int id)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("Không tìm thấy sản phẩm.");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Prodcut can not found!");
 
 			//Check id sản phẩm này có tồn tại trong Order ko -> nếu ko, xóa cứng
 			//bool isExistInAnyOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.ProductId == id);

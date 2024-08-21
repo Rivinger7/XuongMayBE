@@ -1,6 +1,10 @@
 ﻿using GarmentFactory.Repository.Context;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -19,7 +23,7 @@ namespace XuongMayBE.API
             services.AddDatabase(configuration);
             services.AddIdentity();
             services.AddInfrastructure(configuration);
-            services.AddServices();
+            services.AddServices(configuration);
             services.AddAutoMapper();
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
@@ -52,21 +56,72 @@ namespace XuongMayBE.API
              .AddEntityFrameworkStores<GarmentFactoryDBContext>()
              .AddDefaultTokenProviders();
         }
-        public static void AddServices(this IServiceCollection services)
+        public static void AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthencationService, AuthenticationService>();
             services.AddScoped<IAssemblyLineService, AssemblyLineService>();
 
             services.AddScoped<ICategoryService, CategoryService>();
-			services.AddScoped<IProductService, ProductService>();
-			services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<ITasksService, TasksService>();
 
-
-			services.AddTransient<IJwtService, JwtService>();
+            services.AddTransient<IJwtService, JwtService>();
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+            //Authorize by input token to access API
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Xuong May", Version = "v1" });
+
+                // Add JWT Authentication
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' [space] token",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = "https://localhost:7286/",
+            ValidateAudience = true,
+            ValidAudience = "https://localhost:7286/",
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetSection("Jwt:SecretKey").Value)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
         }
 

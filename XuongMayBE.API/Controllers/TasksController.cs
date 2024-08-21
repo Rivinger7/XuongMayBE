@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
@@ -7,7 +9,7 @@ using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMayBE.API.Controllers
 {
-	//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Manager")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class TasksController : ControllerBase

@@ -176,7 +176,7 @@ namespace XuongMay.Services.Service
             }
 
             // Check if the user with the specified ID is a Manager
-            bool isManager = await _unitOfWork.GetRepository<User>().Entities.AnyAsync(manager => manager.Id == assemblyLineModel.ManagerID && manager.Role == "Manager");
+            bool isManager = await _unitOfWork.GetRepository<User>().Entities.AnyAsync(manager => manager.Id == assemblyLineModel.ManagerID && manager.Role == "Manager" && !manager.IsDeleted);
             if (!isManager)
             {
                 throw new ArgumentException("The assigned user is not manager");
@@ -264,6 +264,7 @@ namespace XuongMay.Services.Service
             }
 
             // Update value
+            existingAssemblyLine.ManagerId = assemblyLineModel.ManagerID;
             existingAssemblyLine.Name = assemblyLineModel.Name.Trim();
             existingAssemblyLine.Description = assemblyLineModel.Description is not null ? assemblyLineModel.Description.Trim() : null;
             existingAssemblyLine.NumberOfStaffs = assemblyLineModel.NumberOfStaffs;
