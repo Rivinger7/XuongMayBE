@@ -40,7 +40,6 @@ namespace XuongMay.Services.Service
 
 			// Tổng số phần tử
 			int totalCount = await productsQuery.CountAsync();
-
 			// Áp dụng pagination
 			List<Product> paginatedProducts = await productsQuery
 				.Skip((pageNumber - 1) * pageSize)
@@ -159,15 +158,6 @@ namespace XuongMay.Services.Service
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
 			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Prodcut can not found!");
-
-			//Check id sản phẩm này có tồn tại trong Order ko -> nếu ko, xóa cứng
-			//bool isExistInAnyOrder = await _unitOfWork.GetRepository<Order>().Entities.AnyAsync(o => o.ProductId == id);
-			//if (!isExistInAnyOrder)
-			//{
-			//	_unitOfWork.GetRepository<Product>().Delete(id);
-			//	await _unitOfWork.SaveAsync();
-			//	return;
-			//}
 
 			//Xóa mềm
 			product.DeletedTime = CoreHelper.SystemTimeNows;
