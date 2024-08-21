@@ -62,7 +62,7 @@ namespace XuongMay.Services.Service
 			//Check tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))
 			{
-				throw new Exception("Tên không được để trống!!!");
+				throw new Exception("Name cannot be blank!!!");
 			}
 
 			//Check category đã tồn tại hay chưa
@@ -72,7 +72,7 @@ namespace XuongMay.Services.Service
 
 			if (existingCategory != null)
 			{
-				throw new Exception($"Danh mục '{model.Name}' đã tồn tại.");
+				throw new Exception($"The category '{model.Name}' already exists.");
 			}
 
 			Category newCategory = _mapper.Map<Category>(model);
@@ -92,18 +92,18 @@ namespace XuongMay.Services.Service
 		{
 			//Check category có tồn tại không
 			Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id)
-				?? throw new Exception("Danh mục không tồn tại");
+				?? throw new Exception("Category does not exist");
 
 			//Check category có bị xóa chưa
 			if (category.DeletedTime.HasValue)
 			{
-				throw new Exception("Không tìm thấy danh mục");
+				throw new Exception("No category found");
 			}
 
 			// Check Name không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name) )
 			{
-				throw new Exception("Tên không được để trống!!!");
+				throw new Exception("Name cannot be blank!!!");
 			}
 
 			//Check category có bị trùng tên không?
@@ -113,7 +113,7 @@ namespace XuongMay.Services.Service
 
 			if (existingCategory != null)
 			{
-				throw new Exception($"Danh mục '{model.Name}' đã tồn tại.");
+				throw new Exception($"The category '{model.Name}' already exists.");
 			}
 
 			//Check có Product trong Category không? Nếu có, thì không thể update
@@ -123,7 +123,7 @@ namespace XuongMay.Services.Service
 				
 			if(product)
 			{
-				throw new Exception("Không thể cập nhật vì vẫn còn sản phẩm trong danh mục này");
+				throw new Exception("Cannot update because there are still products in this category");
 			}
 
 			//Cập nhật và lưu danh mục
@@ -138,11 +138,11 @@ namespace XuongMay.Services.Service
 		{
 			//Check category có tồn tại không
 			Category category = await _unitOfWork.GetRepository<Category>().GetByIdAsync(id)
-				?? throw new Exception("Danh mục không tồn tại");
+				?? throw new Exception("Category does not exist");
 
 			if(category.DeletedTime.HasValue)
 			{
-				throw new Exception("Không tìm thấy danh mục này");
+				throw new Exception("This category was not found.");
 			}
 
 			//Check còn Product trong Category không? Nếu còn, thì ko thể xóa
@@ -152,7 +152,7 @@ namespace XuongMay.Services.Service
 			
 			if(product)
 			{
-				throw new Exception("Không thể xóa vì vẫn còn sản phẩm trong danh mục này");
+				throw new Exception("Cannot delete because there are still products in this category");
 			}
 
 			//Xóa mềm
