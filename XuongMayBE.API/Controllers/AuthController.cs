@@ -10,12 +10,10 @@ namespace XuongMayBE.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthencationService _authencationService;
-        private readonly IJwtService _jwtService;
 
-        public AuthController(IAuthencationService authencationService, IJwtService jwtService)
+        public AuthController(IAuthencationService authencationService)
         {
             _authencationService = authencationService;
-            _jwtService = jwtService;
         }
 
         /// <summary>
@@ -28,23 +26,8 @@ namespace XuongMayBE.API.Controllers
         {
             try
             {
-                var user = await _authencationService.AuthenticateUserAsync(loginModel);
-
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.Role)
-                };
-
-                //Call method to generate access token
-                _jwtService.GenerateAccessToken(claims, user.Id, out string accessToken, out string refreshToken);
-
-                return Ok(new AuthenticatedResponseModelView
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                }
-                );
+                var authenticationModel = await _authencationService.AuthenticateUserAsync(loginModel);
+                return Ok(authenticationModel);
             }
             catch (ArgumentException aex)
             {

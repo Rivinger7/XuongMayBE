@@ -240,29 +240,5 @@ namespace XuongMayBE.API.Controllers
                 return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
             }
         }
-
-        /// <summary>
-        /// Soft deletes an assembly line by its name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns>A confirmation message indicating successful deletion</returns>
-        [HttpDelete("{name}")]
-        public async Task<IActionResult> DeleteAssemblyLineByNameAsync(string name)
-        {
-            try
-            {
-                await _assemblyLineService.DeleteAssemblyLineByNameAsync(name);
-                return Ok(new { message = $"Delete assembly line with Name {name} Successfully" });
-            }
-            catch (ArgumentException aex)
-            {
-                return BadRequest(new { message = aex.Message });
-            }
-            catch (Exception ex)
-            {
-                await Console.Out.WriteLineAsync(ex.StackTrace);
-                return StatusCode(500, new { message = "Internal server error", stackError = ex.Message });
-            }
-        }
     }
 }
