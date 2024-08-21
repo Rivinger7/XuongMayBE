@@ -122,7 +122,7 @@ namespace XuongMay.Services.Service
 			//get Task which having the same Assembly Line with Task in model and having time is overlapped
 			var tasksInSameAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
 														   .Entities
-														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId
+														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId && !t.DeletedTime.HasValue
 																					&& ((startTimeTasksModel >= t.StartTime && startTimeTasksModel < t.EndTime)
 																						|| (endTimeTasksModel > t.StartTime && endTimeTasksModel <= t.EndTime)));
 
@@ -182,7 +182,7 @@ namespace XuongMay.Services.Service
 			//get Task which having the same Assembly Line with Task in model and having time is overlapped
 			var tasksInOtherAssemblyLine = await _unitOfWork.GetRepository<Tasks>()
 														   .Entities
-														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId && t.Id != taskId
+														   .FirstOrDefaultAsync(t => t.AssemblyLineId == taskModel.AssemblyLineId && t.Id != taskId && !t.DeletedTime.HasValue
 																					&& ((startTimeTasksModel >= t.StartTime && startTimeTasksModel < t.EndTime)
 																						|| (endTimeTasksModel > t.StartTime && endTimeTasksModel <= t.EndTime)));
 
@@ -247,7 +247,7 @@ namespace XuongMay.Services.Service
 		{
 			//Sum of quantity of all Tasks in an Order
 			return await _unitOfWork.GetRepository<Tasks>().Entities
-														.Where(t => t.OrderId == orderId && t.Id != taskIdUpdate)
+														.Where(t => t.OrderId == orderId && t.Id != taskIdUpdate && !t.DeletedTime.HasValue)
 														.SumAsync(t => t.Quantity);
 		}
 
