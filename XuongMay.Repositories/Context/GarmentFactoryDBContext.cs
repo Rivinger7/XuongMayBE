@@ -93,6 +93,8 @@ namespace GarmentFactory.Repository.Context
 				entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
 
 				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
+
+				entity.Property(e => e.Name).HasMaxLength(50);
 			});
 
 			modelBuilder.Entity<Tasks>(entity =>

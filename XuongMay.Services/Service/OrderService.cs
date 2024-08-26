@@ -92,6 +92,16 @@ namespace XuongMay.Services.Service
 				.FirstOrDefaultAsync(p => p.Id == model.ProductId && !p.DeletedTime.HasValue)
 				?? throw new Exception("Product does not exist.");
 
+			//Check Tên đơn hàng đã tồn tại chưa
+			Order? orders = await _unitOfWork.GetRepository<Order>()
+				.Entities
+				.FirstOrDefaultAsync(o => o.Name == model.OrderName && !o.DeletedTime.HasValue);
+				
+			if(orders != null)
+			{
+				throw new Exception($"The category '{model.OrderName}' already exists.");
+			}
+
 			//Check StartTime & EndTime không được để trống 
 			if (string.IsNullOrWhiteSpace(model.StartTime) || string.IsNullOrWhiteSpace(model.EndTime))
 			{
