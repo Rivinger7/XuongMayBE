@@ -13,7 +13,7 @@ namespace XuongMay.Repositories.Mappers
 				.ForMember(dest => dest.ProducName, opt => opt.MapFrom(src => src.Product.Name))
 				.ForMember(dest => dest.CreatedTime,
 				opt => opt.MapFrom(src => src.CreatedTime.ToString("HH:mm dd/MM/yyyy")))  // Format CreatedTime
-				.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.TotalQuantity));
+				.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.InventoryChamberMappers.FirstOrDefault(m => m.InventoryId == src.Id).Quantity));
 		}
 
 
