@@ -32,12 +32,6 @@ namespace XuongMay.Services.Service
 				.Entities
 				.Where(i => i.ChamberId == chamberID && !i.DeletedTime.HasValue);
 
-			//Lọc theo ImportAndExport
-			if (importAndExport.HasValue)
-			{
-				queryMapper = queryMapper.Where(i => i.InventoryHistories.IsImport == importAndExport.HasValue);
-			}
-
 			var listMapper = await queryMapper.Select(i => i.InventoryId).ToListAsync();
 
 			//Tạo truy vấn lịch sử nhập/xuất hàng và Sắp xếp theo giảm dần về thời gian tạo
@@ -46,10 +40,14 @@ namespace XuongMay.Services.Service
 				.Where(i => listMapper.Contains(i.Id) && !i.DeletedTime.HasValue)
 				.OrderByDescending(i => i.CreatedTime);
 
-			//Lọc theo ImportAndExport
-			if (importAndExport.HasValue)
+			// Lọc theo ImportAndExport: True là nhập kho. False là xuất kho
+			if (importAndExport == true)
 			{
-				query = query.Where(i => i.IsImport == importAndExport.HasValue);
+				query = query.Where(i => i.IsImport == true);
+			}
+			else if (importAndExport == false)
+			{
+				query = query.Where(i => i.IsImport == false);
 			}
 
 			//lọc theo searchId
