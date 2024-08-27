@@ -77,8 +77,8 @@ namespace XuongMay.Services.Service
 
 			Category newCategory = _mapper.Map<Category>(model);
 			newCategory.CreatedTime = CoreHelper.SystemTimeNows;
-			newCategory.LastUpdatedTime = null;
-			newCategory.DeletedTime = null;
+			//newCategory.LastUpdatedTime = null;
+			//newCategory.DeletedTime = null;
 
 			// Lưu category vào database
 			await _unitOfWork.GetRepository<Category>().InsertAsync(newCategory);

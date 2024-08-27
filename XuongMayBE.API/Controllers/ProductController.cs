@@ -78,7 +78,7 @@ namespace XuongMayBE.API.Controllers
 
 
 		/// <summary>
-		/// Thêm sản phẩm mới
+		/// Thêm sản phẩm mới, có tên khác với sản phẩm đã tồn tại
 		/// </summary>
 		[HttpPost("create")]
 		public async Task<IActionResult> Add(CreateProductModel model)

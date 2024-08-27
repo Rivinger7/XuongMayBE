@@ -4,6 +4,7 @@ using GarmentFactory.Repository.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GarmentFactory.Repository.Migrations
 {
     [DbContext(typeof(GarmentFactoryDBContext))]
-    partial class GarmentFactoryDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240826172044_MigrationV10Hanie")]
+    partial class MigrationV10Hanie
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,152 +290,6 @@ namespace GarmentFactory.Repository.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.ChamberProducts", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastInventoryHistory")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastUpdatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ChamberProducts");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.InventoryChamberMappers", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChamberId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("InventoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastUpdatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChamberId");
-
-                    b.HasIndex("InventoryId");
-
-                    b.ToTable("InventoryChamberMappers");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.InventoryHistories", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsImport")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ItemPerBox")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastUpdatedTime")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalQuantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("InventoryHistories");
-                });
-
             modelBuilder.Entity("GarmentFactory.Contract.Repositories.Entity.AssemblyLine", b =>
                 {
                     b.HasOne("GarmentFactory.Contract.Repositories.Entity.User", "User")
@@ -488,38 +345,6 @@ namespace GarmentFactory.Repository.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.InventoryChamberMappers", b =>
-                {
-                    b.HasOne("XuongMay.Contract.Repositories.Entity.ChamberProducts", "ChamberProducts")
-                        .WithMany("InventoryChamberMappers")
-                        .HasForeignKey("ChamberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_ChamberProducts_InventoryChamberMappers");
-
-                    b.HasOne("XuongMay.Contract.Repositories.Entity.InventoryHistories", "InventoryHistories")
-                        .WithMany("InventoryChamberMappers")
-                        .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_InventoryHistories_InventoryChamberMappers");
-
-                    b.Navigation("ChamberProducts");
-
-                    b.Navigation("InventoryHistories");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.InventoryHistories", b =>
-                {
-                    b.HasOne("GarmentFactory.Contract.Repositories.Entity.Product", "Product")
-                        .WithMany("InventoryHistories")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-                
             modelBuilder.Entity("GarmentFactory.Contract.Repositories.Entity.AssemblyLine", b =>
                 {
                     b.Navigation("Tasks");
@@ -537,8 +362,6 @@ namespace GarmentFactory.Repository.Migrations
 
             modelBuilder.Entity("GarmentFactory.Contract.Repositories.Entity.Product", b =>
                 {
-                    b.Navigation("InventoryHistories");
-
                     b.Navigation("Orders");
                 });
 
@@ -546,16 +369,6 @@ namespace GarmentFactory.Repository.Migrations
                 {
                     b.Navigation("AssemblyLine")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.ChamberProducts", b =>
-                {
-                    b.Navigation("InventoryChamberMappers");
-                });
-
-            modelBuilder.Entity("XuongMay.Contract.Repositories.Entity.InventoryHistories", b =>
-                {
-                    b.Navigation("InventoryChamberMappers");
                 });
 #pragma warning restore 612, 618
         }
