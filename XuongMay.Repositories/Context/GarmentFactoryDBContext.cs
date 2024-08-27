@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XuongMay.Contract.Repositories.Entity;
 
 namespace GarmentFactory.Repository.Context
 {
@@ -22,6 +23,9 @@ namespace GarmentFactory.Repository.Context
 		public virtual DbSet<Category> Categories { get; set; }
 		public virtual DbSet<Order> Orders { get; set; }
 		public virtual DbSet<Product> Products { get; set; }
+		public virtual DbSet<InventoryHistories> InventoryHistories { get; set; }
+		public virtual DbSet<InventoryChamberMappers> InventoryChamberMappers { get; set; }
+		public virtual DbSet<ChamberProducts> ChamberProducts { get; set; }
 		public virtual DbSet<Tasks> Tasks { get; set; }
 		#endregion
 
@@ -137,6 +141,70 @@ namespace GarmentFactory.Repository.Context
 
 				entity.Property(e => e.Name).HasMaxLength(50);
 			});
+
+			modelBuilder.Entity<InventoryHistories>(entity =>
+			{
+				entity.HasKey(e => e.Id); // Set Primary Key
+				entity.Property(e => e.Id).ValueGeneratedOnAdd(); // set Id Auto Increment
+
+                entity.Property(e => e.Name).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.Description).HasColumnType("nvarchar(max)");
+
+				entity.Property(e => e.IsImport).HasColumnType("bit");
+				entity.Property(e => e.TotalQuantity).HasColumnType("int");
+
+				entity.Property(e => e.CreatedBy).HasColumnType("nvarchar(max)");
+				entity.Property(e => e.LastUpdatedBy).HasColumnType("nvarchar(max)");
+				entity.Property(e => e.DeletedBy).HasColumnType("nvarchar(max)");
+
+				entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+				entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
+				entity.Property(e => e.DeletedTime).HasColumnType("datetime");
+
+				entity.Property(e => e.ItemPerBox).HasColumnType("int");
+            });
+
+			modelBuilder.Entity<InventoryChamberMappers>(entity =>
+			{
+                // Many to Many Relationship
+                entity.HasOne<InventoryHistories>(ih => ih.InventoryHistories).WithMany(icm => icm.InventoryChamberMappers).HasForeignKey(icm => icm.InventoryId).HasConstraintName("FK_InventoryHistories_InventoryChamberMappers");
+                entity.HasOne<ChamberProducts>(cp => cp.ChamberProducts).WithMany(icm => icm.InventoryChamberMappers).HasForeignKey(icm => icm.ChamberId).HasConstraintName("FK_ChamberProducts_InventoryChamberMappers");
+
+                entity.HasKey(e => e.Id); // Set Primary Key
+                entity.Property(e => e.Id).ValueGeneratedOnAdd(); // set Id Auto Increment
+
+				entity.Property(e => e.Quantity).HasColumnType("int");
+
+                entity.Property(e => e.CreatedBy).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.LastUpdatedBy).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.DeletedBy).HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedTime).HasColumnType("datetime");
+            });
+
+			modelBuilder.Entity<ChamberProducts>(entity =>
+			{
+                entity.HasKey(e => e.Id); // Set Primary Key
+                entity.Property(e => e.Id).ValueGeneratedOnAdd(); // set Id Auto Increment
+
+                entity.Property(e => e.Name).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.Description).HasColumnType("nvarchar(max)");
+
+				entity.Property(e => e.Capacity).HasColumnType("int");
+				entity.Property(e => e.Quantity).HasColumnType("int");
+
+                entity.Property(e => e.CreatedBy).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.LastUpdatedBy).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.DeletedBy).HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
+                entity.Property(e => e.LastUpdatedTime).HasColumnType("datetime");
+                entity.Property(e => e.DeletedTime).HasColumnType("datetime");
+
+				entity.Property(e => e.LastInventoryHistory).HasColumnType("nvarchar(max)"); // Could be int type based on Code attribute but it's not here
+            });
 
 			OnModelCreatingPartial(modelBuilder);
 		}

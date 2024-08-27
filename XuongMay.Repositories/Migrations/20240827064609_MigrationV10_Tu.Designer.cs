@@ -4,6 +4,7 @@ using GarmentFactory.Repository.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GarmentFactory.Repository.Migrations
 {
     [DbContext(typeof(GarmentFactoryDBContext))]
-    partial class GarmentFactoryDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240827064609_MigrationV10_Tu")]
+    partial class MigrationV10_Tu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,11 +132,6 @@ namespace GarmentFactory.Repository.Migrations
 
                     b.Property<DateTime?>("LastUpdatedTime")
                         .HasColumnType("datetime");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -519,7 +517,7 @@ namespace GarmentFactory.Repository.Migrations
 
                     b.Navigation("Product");
                 });
-                
+
             modelBuilder.Entity("GarmentFactory.Contract.Repositories.Entity.AssemblyLine", b =>
                 {
                     b.Navigation("Tasks");

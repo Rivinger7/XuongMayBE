@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using XuongMay.Contract.Repositories.Entity;
 
 namespace GarmentFactory.Contract.Repositories.Entity
 {
@@ -17,6 +18,7 @@ namespace GarmentFactory.Contract.Repositories.Entity
 		#region entity Mapping
 		public virtual ICollection<Order>? Orders { get; set; }
 		public virtual Category Category { get; set; }
+		public virtual ICollection<InventoryHistories>? InventoryHistories { get; set; }
 		#endregion
 	}
 }
