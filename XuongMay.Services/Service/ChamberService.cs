@@ -32,9 +32,9 @@ namespace XuongMay.Services.Service
 				.Entities
 				.Where(i => i.ChamberId == chamberID && !i.DeletedTime.HasValue);
 
-			var listMapper = await queryMapper.Select(i => i.InventoryId).ToListAsync();
+			List<int> listMapper = await queryMapper.Select(i => i.InventoryId).ToListAsync();
 
-			//Tạo truy vấn lịch sử nhập/xuất hàng và Sắp xếp theo giảm dần về thời gian tạo
+			//Tạo truy vấn lịch sử nhập/xuất hàng và sắp xếp theo CreaTime mới nhất
 			IQueryable<InventoryHistories> query = _unitOfWork.GetRepository<InventoryHistories>()
 				.Entities
 				.Where(i => listMapper.Contains(i.Id) && !i.DeletedTime.HasValue)
