@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GarmentFactory.Contract.Repositories.Entity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
@@ -13,11 +14,13 @@ namespace XuongMay.Services.Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<BasePaginatedList<UserSummaryModel>> GetAllUsersAsync(int pageNumber, int pageSize)
