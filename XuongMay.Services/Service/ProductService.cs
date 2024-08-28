@@ -108,7 +108,6 @@ namespace XuongMay.Services.Service
 			// Lưu sản phẩm vào DB
 			Product newProduct = _mapper.Map<Product>(model);
 			newProduct.CreatedTime = CoreHelper.SystemTimeNows;
-			newProduct.IsDeleted = false;
 			await _unitOfWork.GetRepository<Product>().InsertAsync(newProduct);
 			await _unitOfWork.SaveAsync();
 
@@ -119,7 +118,7 @@ namespace XuongMay.Services.Service
 		public async Task<ResponseProductModel> UpdateProductAsync(int id, CreateProductModel model)
 		{
 			// Lấy sản phẩm - kiểm tra sự tồn tại
-			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Prodcut can not found!");
+			Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == id && !p.DeletedTime.HasValue) ?? throw new Exception("The Product can not found!");
 
 			// Kiểm tra tên không được để trống
 			if (string.IsNullOrWhiteSpace(model.Name))

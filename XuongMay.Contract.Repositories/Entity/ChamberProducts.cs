@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace XuongMay.Contract.Repositories.Entity
 {
-    public class ChamberProducts
+	public class ChamberProducts
     {
         [Key]
         public int Id { get; set; }
