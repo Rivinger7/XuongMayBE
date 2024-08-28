@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.ChamberModelViews;
 using XuongMay.ModelViews.ProductModelViews;
@@ -6,6 +8,7 @@ using XuongMay.Services.Service;
 
 namespace XuongMayBE.API.Controllers
 {
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class WarehouseController : Controller

@@ -69,6 +69,8 @@ namespace XuongMay.Services.Service
 			}
 			// Tạo đơn nhập kho cho từng product ứng vs từng chamber
 			DateTime now = CoreHelper.SystemTimeNows;
+			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
+			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
 			foreach (var productId in model.ProductIds)
 			{
 				// Số dòng mới trong InventoryHistories = số productIds
@@ -79,7 +81,7 @@ namespace XuongMay.Services.Service
 					Description = model.Description,
 					IsImport = true,
 					TotalQuantity = model.Quantity * model.ChamberIds.Count,
-					CreatedBy = "Check",
+					CreatedBy = user.FullName,
 					CreatedTime = now,
 					ItemPerBox = model.ItemPerBox
 				};
