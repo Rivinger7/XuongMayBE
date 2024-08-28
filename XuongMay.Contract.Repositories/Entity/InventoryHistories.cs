@@ -1,14 +1,9 @@
 ﻿using GarmentFactory.Contract.Repositories.Entity;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace XuongMay.Contract.Repositories.Entity
 {
-    public class InventoryHistories
+	public class InventoryHistories
     {
         [Key]
         public int Id { get; set; }

@@ -1,17 +1,15 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using GarmentFactory.Contract.Repositories.Entity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XuongMay.Contract.Repositories.Entity;
 using XuongMay.Contract.Repositories.Interface;
 using XuongMay.Contract.Services.Interface;
+using XuongMay.Core;
 using XuongMay.Core.Utils;
 using XuongMay.ModelViews.ChamberModelViews;
+using XuongMay.ModelViews.InventoryHistoriesModelViews;
 
 namespace XuongMay.Services.Service
 {
@@ -58,7 +56,7 @@ namespace XuongMay.Services.Service
 			// Kiểm tra các productIds có tồn tại ko?
 			foreach (var productId in model.ProductIds)
 			{
-				Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == productId && !p.DeletedTime.HasValue) 
+				Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == productId && !p.DeletedTime.HasValue)
 									?? throw new Exception("The Product can not found!");
 			}
 			// Kiểm tra các chamberIds có tồn tại ko?
@@ -106,12 +104,74 @@ namespace XuongMay.Services.Service
 					await _unitOfWork.SaveAsync();
 
 					//Cập nhật quantity trong ChamberProducts
-					ChamberProducts chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue);
+					ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue);
 					chamber.Quantity = chamber.Quantity + model.Quantity;
 					_unitOfWork.GetRepository<ChamberProducts>().Update(chamber);
 					await _unitOfWork.SaveAsync();
 				}
 			}
 		}
+
+		public async Task<BasePaginatedList<ResponseInventoryHistoryModel>> GetInventoryHistoriesAsync(int pageNumber, int pageSize, int chamberID, int? searchId, string? searchProductName, bool? importAndExport)
+		{
+			//Check chamber có tồn tại không
+			ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberID)
+				?? throw new Exception("Khoang không tồn tại");
+
+			//Tìm các InventoryChamberMapper có cùng chamberID
+			IQueryable<InventoryChamberMappers> queryMapper = _unitOfWork.GetRepository<InventoryChamberMappers>()
+				.Entities
+				.Where(i => i.ChamberId == chamberID && !i.DeletedTime.HasValue);
+
+			List<int> listMapper = await queryMapper.Select(i => i.InventoryId).ToListAsync();
+
+			//Tạo truy vấn lịch sử nhập/xuất hàng và sắp xếp theo CreaTime mới nhất
+			IQueryable<InventoryHistories> query = _unitOfWork.GetRepository<InventoryHistories>()
+				.Entities
+				.Where(i => listMapper.Contains(i.Id) && !i.DeletedTime.HasValue)
+				.OrderByDescending(i => i.CreatedTime);
+
+			// Lọc theo ImportAndExport: True là nhập kho. False là xuất kho
+			if (importAndExport == true)
+			{
+				query = query.Where(i => i.IsImport == true);
+			}
+			else if (importAndExport == false)
+			{
+				query = query.Where(i => i.IsImport == false);
+			}
+
+			//lọc theo searchId
+			if (searchId > 0)
+			{
+				query = query.Where(i => i.Id == searchId);
+			}
+
+			//Tìm kiếm theo ProductName nếu có giá trị
+			if (!string.IsNullOrWhiteSpace(searchProductName))
+			{
+				query = query.Where(i => i.Product.Name.Contains(searchProductName));
+			}
+
+			//Check page Size không được < 0
+			if (pageSize < 0)
+			{
+				throw new Exception("Kích thước trang phải lớn hơn 0");
+			}
+
+			// Đếm tổng số lượng sau khi đã lọc
+			int totalCategory = await query.CountAsync();
+
+			//Áp dụng phân trang
+			IReadOnlyCollection<ResponseInventoryHistoryModel> pageInventoryHistory = await query
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.ProjectTo<ResponseInventoryHistoryModel>(_mapper.ConfigurationProvider)
+				.ToListAsync();
+
+			//Tạo BasePaginatedList và trả về
+			return new BasePaginatedList<ResponseInventoryHistoryModel>(pageInventoryHistory, totalCategory, pageNumber, pageSize);
+		}
 	}
 }
+
