@@ -6,6 +6,7 @@ using XuongMay.Core.Utils;
 using XuongMay.Contract.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace XuongMay.Services.Service
 {
@@ -14,25 +15,23 @@ namespace XuongMay.Services.Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IJwtService _jwtService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthenticationService(IUnitOfWork unitOfWork, IMapper mapper, IJwtService jwtService)
+        public AuthenticationService(IUnitOfWork unitOfWork, IMapper mapper, IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _jwtService = jwtService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AuthenticatedResponseModelView> AuthenticateUserAsync(LoginModelView loginModelView)
         {
-            // Assign value
-            string username = loginModelView.Username;
-            string password = loginModelView.Password;
-
             // Retrieve user by username from the repository
-            User retrieveUser = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(user => user.Username == username) ?? throw new ArgumentException("Username or Password is incorrect");
+            User retrieveUser = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(user => user.Username == loginModelView.Username) ?? throw new ArgumentException("Username or Password is incorrect");
 
             // Verify if the password does not match with password hash
-            if (!BCrypt.Net.BCrypt.Verify(password, retrieveUser.Password))
+            if (!BCrypt.Net.BCrypt.Verify(loginModelView.Password, retrieveUser.Password))
             {
                 throw new ArgumentException("Username or Password is incorrect");
             }
@@ -53,6 +52,9 @@ namespace XuongMay.Services.Service
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
+
+            // Store user session
+            _httpContextAccessor.HttpContext.Session.SetInt32("userID", retrieveUser.Id);
 
             return authenticationModel;
         }
