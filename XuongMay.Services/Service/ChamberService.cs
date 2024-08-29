@@ -117,8 +117,7 @@ namespace XuongMay.Services.Service
 		public async Task<BasePaginatedList<ResponseInventoryHistoryModel>> GetInventoryHistoriesAsync(int pageNumber, int pageSize, int chamberID, int? searchId, string? searchProductName, bool? importAndExport)
 		{
 			//Check chamber có tồn tại không
-			ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberID)
-				?? throw new Exception("Khoang không tồn tại");
+			ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberID);
 
 			//Tìm các InventoryChamberMapper có cùng chamberID
 			IQueryable<InventoryChamberMappers> queryMapper = _unitOfWork.GetRepository<InventoryChamberMappers>()
@@ -138,7 +137,7 @@ namespace XuongMay.Services.Service
 			{
 				query = query.Where(i => i.IsImport == true);
 			}
-			else if (importAndExport == false)
+			else
 			{
 				query = query.Where(i => i.IsImport == false);
 			}
