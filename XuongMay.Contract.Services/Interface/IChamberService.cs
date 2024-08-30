@@ -22,5 +22,7 @@ namespace XuongMay.Contract.Services.Interface
 		Task CancelImportAsync(int inventoryHistoryId);
 
 		Task CancelExportAsync(int inventoryHistoryId);
+
+		Task TransferProduct(int productId, int itemsPerBox, int chamberId_1, int chamberId_2);
 	}
 }

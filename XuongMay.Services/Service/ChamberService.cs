@@ -27,6 +27,7 @@ namespace XuongMay.Services.Service
 			_mapper = mapper;
 			_contextAccessor = contextAccessor;
 		}
+
 		// Nhập kho
 		public async Task ImportChambers(ImportModel model)
 		{
@@ -46,24 +47,24 @@ namespace XuongMay.Services.Service
 			{
 				throw new Exception("Please select the chamber!");
 			}
-			// Kiểm tra Quantity phải >= 0
-			if (model.Quantity < 0)
+			// Kiểm tra Quantity phải > 0
+			if (model.Quantity <= 0)
 			{
-				throw new Exception("Quantity must be >= 0!");
+				throw new Exception("Quantity must be > 0!");
 			}
-			// Kiểm tra ItemPerBox phải >= 0
-			if (model.ItemPerBox < 0)
+			// Kiểm tra ItemPerBox phải > 0
+			if (model.ItemPerBox <= 0)
 			{
-				throw new Exception("Item Per Box must be >= 0!");
+				throw new Exception("Item Per Box must be > 0!");
 			}
 			// Kiểm tra các productIds có tồn tại ko?
-			foreach (var productId in model.ProductIds)
+			foreach (int productId in model.ProductIds)
 			{
 				Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == productId && !p.DeletedTime.HasValue)
 									?? throw new Exception("The Product can not found!");
 			}
 			// Kiểm tra các chamberIds có tồn tại ko?
-			foreach (var chamberId in model.ChamberIds)
+			foreach (int chamberId in model.ChamberIds)
 			{
 				ChamberProducts chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue)
 											?? throw new Exception("The Chamber can not found!");
@@ -90,7 +91,7 @@ namespace XuongMay.Services.Service
 				await _unitOfWork.SaveAsync();
 
 				// Lấy đơn nhập kho mới tạo
-				import = await _unitOfWork.GetRepository<InventoryHistories>().Entities.FirstOrDefaultAsync(i => i.Name == model.Name && i.ProductId == productId && !i.DeletedTime.HasValue);
+				//import = await _unitOfWork.GetRepository<InventoryHistories>().Entities.FirstOrDefaultAsync(i => i.Name == model.Name && i.ProductId == productId && !i.DeletedTime.HasValue); - KO CẦN
 
 				foreach (var chamberId in model.ChamberIds)
 				{
@@ -104,12 +105,12 @@ namespace XuongMay.Services.Service
 						CreatedTime = now
 					};
 					await _unitOfWork.GetRepository<InventoryChamberMappers>().InsertAsync(newInventoryChamber);
-					await _unitOfWork.SaveAsync();
+					
 
 					//Cập nhật quantity trong ChamberProducts
 					ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue);
-					chamber.Quantity = chamber.Quantity + model.Quantity;
-					_unitOfWork.GetRepository<ChamberProducts>().Update(chamber);
+					chamber.Quantity +=  model.Quantity;
+					await _unitOfWork.GetRepository<ChamberProducts>().UpdateAsync(chamber);
 					await _unitOfWork.SaveAsync();
 				}
 			}
@@ -254,7 +255,7 @@ namespace XuongMay.Services.Service
 				InventoryId = inventoryHistories.Id,
 				Quantity = exportModel.Quantity,
 				CreatedTime = CoreHelper.SystemTimeNows,
-				CreatedBy = user.FullName,
+				CreatedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value,
 				ChamberProducts = chamberProduct,
 				InventoryHistories = inventoryHistories
 			};
@@ -340,7 +341,7 @@ namespace XuongMay.Services.Service
 			}
 			else
 			{
-				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "Cannot cancel import because quantity of product in chamber is less than quantity of product in chamber" });
+				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "Cannot cancel import because quantity of import in chamber is less than quantity of export in chamber" });
 			}
 
 		}
@@ -349,16 +350,16 @@ namespace XuongMay.Services.Service
 		public async Task CancelExportAsync(int inventoryHistoryId)
 		{
 			var inventoryHistories = await _unitOfWork.GetRepository<InventoryHistories>().GetByIdAsync(inventoryHistoryId)
-										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found inventory history !"});
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found inventory history !" });
 
 			// nếu là nhập kho thì isImport phải là false dc
-			if (inventoryHistories.IsImport) 
+			if (inventoryHistories.IsImport)
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "History of this Id is import!" });
 			}
 
 			// nếu đã bị xóa thì ko thể hủy dc
-			if (inventoryHistories.DeletedTime.HasValue) 
+			if (inventoryHistories.DeletedTime.HasValue)
 			{
 				throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found inventory history!!" });
 			}
@@ -391,7 +392,57 @@ namespace XuongMay.Services.Service
 
 		}
 
-		
+
+		//Chuyển 1 sản phẩm (productId_itemsPerBox) từ chamber 1 sang chamber 2
+		public async Task TransferProduct(int productId, int itemsPerBox, int chamberId_1, int chamberId_2)
+		{
+			// Kiểm tra productId phải > 0
+			if (productId <= 0 || chamberId_1 <= 0 || chamberId_2 <= 0)
+			{
+				throw new Exception("IDs must be > 0!");
+			}
+			// Kiểm tra ItemPerBox phải >= 0
+			if (itemsPerBox <= 0)
+			{
+				throw new Exception("Item Per Box must be > 0!");
+			}
+			// Kiểm tra sự tồn tại hợp lệ
+			Product product = await _unitOfWork.GetRepository<Product>().GetByIdAsync(productId)
+								?? throw new Exception("The Product can not found!");
+			ChamberProducts chamber1 = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberId_1)
+								?? throw new Exception("The Chamber 1 can not found!");
+			ChamberProducts chamber2 = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberId_2)
+								?? throw new Exception("The Chamber 2 can not found!");
+			// Lấy giờ và người dùng hiện tại
+			DateTime now = CoreHelper.SystemTimeNows;
+			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
+			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
+
+			// CHUYỂN TẤT CẢ CHAMBERID CỦA sản phẩm (productId_itemsPerBox): TỪ CHAMBER 1 SANG CHAMBER 2
+			// Lấy ra list InventoryHistories của productId_itemsPerBox
+			IQueryable<int> histories = _unitOfWork.GetRepository<InventoryHistories>().Entities.Where(i => !i.DeletedTime.HasValue && i.ProductId == productId && i.ItemPerBox == itemsPerBox).Select(i => i.Id);
+			// Trong InventoryChamberMappers  => chuyển chamberId_1 thành chamberId_2
+			List<InventoryChamberMappers> mappers = await _unitOfWork.GetRepository<InventoryChamberMappers>().Entities
+							.Where(m => histories.Contains(m.InventoryId) && m.ChamberId == chamberId_1 && !m.DeletedTime.HasValue).ToListAsync();
+			foreach (InventoryChamberMappers mapper in mappers)
+			{
+				mapper.ChamberId = chamberId_2;
+				mapper.LastUpdatedTime = now;
+				mapper.LastUpdatedBy = user.FullName;
+			}
+			await _unitOfWork.SaveAsync();
+
+			//CẬP NHẬT QUANTITY, LASTUPDATEDTIME, LASTUPDATEDBY TRONG BẢNG CHAMBERPRODUCTS
+			IQueryable<InventoryChamberMappers> queryMappers = _unitOfWork.GetRepository<InventoryChamberMappers>().Entities.Include(m => m.InventoryHistories).Where(m => !m.DeletedTime.HasValue);
+			//cho chamberId_1
+			chamber1.Quantity = queryMappers.Where(m => m.ChamberId == chamberId_1 && m.InventoryHistories.IsImport == true).Sum(m => m.Quantity)
+								- queryMappers.Where(m => m.ChamberId == chamberId_1 && m.InventoryHistories.IsImport == false).Sum(m => m.Quantity);
+			//cho chamberId_2
+			chamber2.Quantity = queryMappers.Where(m => m.ChamberId == chamberId_2 && m.InventoryHistories.IsImport == true).Sum(m => m.Quantity)
+								- queryMappers.Where(m => m.ChamberId == chamberId_2 && m.InventoryHistories.IsImport == false).Sum(m => m.Quantity);
+			await _unitOfWork.SaveAsync();
+		}
+
 	}
 }
 

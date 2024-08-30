@@ -20,24 +20,6 @@ namespace XuongMayBE.API.Controllers
 			_chamberService = chamberService;
 		}
 
-		/// <summary>
-
-		/// Nhập kho
-		/// </summary>
-		[HttpPost("import")]
-		public async Task<IActionResult> Import(ImportModel model)
-		{
-			try
-			{
-				await _chamberService.ImportChambers(model);
-				return Ok();
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
 		/// Lấy danh sách lịch sử nhập/xuất kho của 1 khoang
 		/// </summary>
 		/// <param name="pageNumber"></param>
@@ -62,6 +44,23 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
+		/// <summary>
+		/// Nhập kho
+		/// </summary>
+		[HttpPost("import")]
+		public async Task<IActionResult> Import(ImportModel model)
+		{
+			try
+			{
+				await _chamberService.ImportChambers(model);
+				return Ok("Import successfully!");
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
 		[HttpPost("export")]
 		public async Task<IActionResult> ExportProduct(ExportProductModel exportModel)
 		{
@@ -73,6 +72,23 @@ namespace XuongMayBE.API.Controllers
 			catch (ErrorException eex)
 			{
 				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
+			}
+		}
+
+		/// <summary>
+		/// Chuyển sản phẩm
+		/// </summary>
+		[HttpPut("transfer_product")]
+		public async Task<IActionResult> TransferProductToOtherChamber(int productId, int itemsPerBox, int chamberId_1, int chamberId_2)
+		{
+			try
+			{
+				await _chamberService.TransferProduct(productId, itemsPerBox, chamberId_1, chamberId_2);
+				return Ok("Transfer product successfully!");
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
 			}
 		}
 
