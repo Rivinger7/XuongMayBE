@@ -1,11 +1,5 @@
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using XuongMay.Core;
 using XuongMay.ModelViews.ChamberModelViews;
-﻿using XuongMay.Core;
 using XuongMay.ModelViews.InventoryHistoriesModelViews;
 using XuongMay.ModelViews.WarehouseModelViews;
 
@@ -24,5 +18,8 @@ namespace XuongMay.Contract.Services.Interface
 		Task CancelExportAsync(int inventoryHistoryId);
 
 		Task TransferProduct(int productId, int itemsPerBox, int chamberId_1, int chamberId_2);
+
+		Task UpdateProduct(int chamberId, int productId, int productIdNew, int itemPerBox);
+
 	}
 }

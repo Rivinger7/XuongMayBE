@@ -20,6 +20,26 @@ namespace XuongMayBE.API.Controllers
 			_chamberService = chamberService;
 		}
 
+		/// <summary>
+		/// Nhập kho
+		/// </summary>
+		/// <param name="model"></param>
+		/// <returns></returns>
+		[HttpPost("import")]
+		public async Task<IActionResult> Import(ImportModel model)
+		{
+			try
+			{
+				await _chamberService.ImportChambers(model);
+				return Ok();
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { Message = ex.Message });
+			}
+		}
+
+		/// <summary>
 		/// Lấy danh sách lịch sử nhập/xuất kho của 1 khoang
 		/// </summary>
 		/// <param name="pageNumber"></param>
@@ -45,22 +65,10 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-		/// Nhập kho
+		/// Xuất kho
 		/// </summary>
-		[HttpPost("import")]
-		public async Task<IActionResult> Import(ImportModel model)
-		{
-			try
-			{
-				await _chamberService.ImportChambers(model);
-				return Ok("Import successfully!");
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { Message = ex.Message });
-			}
-		}
-
+		/// <param name="exportModel"></param>
+		/// <returns></returns>
 		[HttpPost("export")]
 		public async Task<IActionResult> ExportProduct(ExportProductModel exportModel)
 		{
@@ -86,7 +94,30 @@ namespace XuongMayBE.API.Controllers
 				await _chamberService.TransferProduct(productId, itemsPerBox, chamberId_1, chamberId_2);
 				return Ok("Transfer product successfully!");
 			}
-			catch (Exception ex)
+			catch (ErrorException eex)
+			{
+				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
+			}
+		}
+
+		/// <summary>
+		/// Cập nhật sản phẩm hiện tại sang 1 sản phẩm khác
+		/// </summary>
+		/// <param name="chamberId"></param>
+		/// <param name="productId"></param>
+		/// <param name="productIdNew"></param>
+		/// <param name="itemPerBox"></param>
+		/// <returns></returns>
+		[HttpPut("update")]
+		public async Task<IActionResult> UpdateProduct(int chamberId, int productId, int productIdNew, int itemPerBox)
+		{
+			try
+			{
+				await _chamberService.UpdateProduct(chamberId, productId, productIdNew, itemPerBox);
+				return Ok();
+			}
+			catch (ErrorException ex)
+
 			{
 				return BadRequest(new { Message = ex.Message });
 			}
@@ -119,6 +150,7 @@ namespace XuongMayBE.API.Controllers
 				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
 			}
 		}
+
 	}
 }
 
