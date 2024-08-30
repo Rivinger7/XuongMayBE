@@ -455,6 +455,18 @@ namespace XuongMay.Services.Service
 			Product? productNew = _unitOfWork.GetRepository<Product>().GetById(productIdNew) 
 				?? throw new Exception("Sản phẩm mới không tồn tại");
 
+			//Check itemPerBox phải > 0
+			if(itemPerBox <= 0)
+			{
+				throw new Exception("itemPerBox phải lớn hơn 0!");
+			}
+
+			//Check ID phải > 0
+			if(chamberId <= 0 || productId <= 0 || productIdNew <= 0)
+			{
+				throw new Exception("ID phải lớn hơn 0");
+			}
+
 			//Lấy danh sách InventoryChamberMapper của sản phẩm cũ
 			List<InventoryChamberMappers> listMapper = await _unitOfWork.GetRepository<InventoryChamberMappers>()
 				.Entities
@@ -468,6 +480,7 @@ namespace XuongMay.Services.Service
 				throw new Exception("Không tìm thấy sản phẩm trong khoang để nâng cấp");
 			}
 
+			//Lấy người dùng hiện tại
 			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
 			User? user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
 
