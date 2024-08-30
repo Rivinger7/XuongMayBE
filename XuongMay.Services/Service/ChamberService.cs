@@ -270,6 +270,133 @@ namespace XuongMay.Services.Service
 
 
 		}
+
+		//Hủy nhập kho
+		public async Task CancelImportAsync(int inventoryHistoryId)
+		{
+			var inventoryHistories = await _unitOfWork.GetRepository<InventoryHistories>().GetByIdAsync(inventoryHistoryId)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found history of product from Id you entered!" });
+
+			// nếu là nhập kho thì isImport phải là true, ko phải false
+			if(!inventoryHistories.IsImport)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "History of this Id is export!" });
+			}
+
+			// nếu đã bị xóa thì ko thể hủy dc
+			if (inventoryHistories.DeletedTime.HasValue)
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "History of this Id is deleted!" });
+			}
+
+			//lấy mapper ra
+			var inventoryChamberMapper = await _unitOfWork.GetRepository<InventoryChamberMappers>()
+														  .Entities
+														  .FirstOrDefaultAsync(i => i.InventoryId == inventoryHistoryId && !i.DeletedTime.HasValue)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found any chamber mapper with given Inventory History Id" });
+
+			//lấy chamber product tương ứng từ mapper
+			var chamberProduct = await _unitOfWork.GetRepository<ChamberProducts>()
+												  .Entities
+												  .FirstOrDefaultAsync(c => c.Id == inventoryChamberMapper.ChamberId && !c.DeletedTime.HasValue)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found any chamber base on inventory history Id" });
+
+			//lấy tổng số lượng của import và export ra
+			int sumQuantityImport = await _unitOfWork.GetRepository<InventoryChamberMappers>()
+													.Entities
+													.Include(i => i.InventoryHistories)
+													.Include(i => i.ChamberProducts)
+													.Where(i =>     i.InventoryId != inventoryHistoryId
+																&&	i.InventoryHistories.IsImport == true
+																&& !i.InventoryHistories.DeletedTime.HasValue	
+																&& !i.ChamberProducts.DeletedTime.HasValue
+																&& !i.DeletedTime.HasValue)
+													.SumAsync(i => i.Quantity);
+
+			Console.WriteLine(sumQuantityImport);
+
+			int sumQuantityExport = await _unitOfWork.GetRepository<InventoryChamberMappers>()
+													.Entities
+													.Include(i => i.InventoryHistories)
+													.Include(i => i.ChamberProducts)
+													.Where(i => i.InventoryHistories.IsImport == false
+																&& !i.InventoryHistories.DeletedTime.HasValue
+																&& !i.ChamberProducts.DeletedTime.HasValue
+																&& !i.DeletedTime.HasValue)
+													.SumAsync(i => i.Quantity);
+			Console.WriteLine(sumQuantityExport);
+
+			//nếu tổng import của những lịch sử khác trừ đi tổng export mà lớn hơn hoặc = 0 thì OK, cho hủy
+			if (sumQuantityImport - sumQuantityExport >= 0)
+			{
+				//cập nhật lại số lượng thùng hàng trong chamber
+				chamberProduct.Quantity -= inventoryChamberMapper.Quantity;
+
+				//cập nhật lại trạng thái đã xóa của lịch sử
+				inventoryHistories.DeletedTime = CoreHelper.SystemTimeNows;
+				inventoryHistories.DeletedBy = "Admin";
+
+				//cập nhật lại trạng thái đã xóa của mappper
+				inventoryChamberMapper.DeletedTime = CoreHelper.SystemTimeNows;
+				inventoryChamberMapper.DeletedBy = "Admin";
+
+				//lưu lại
+				await _unitOfWork.SaveAsync();
+			}
+			else
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "Cannot cancel import because quantity of product in chamber is less than quantity of product in chamber" });
+			}
+
+		}
+
+		//Hủy xuất kho
+		public async Task CancelExportAsync(int inventoryHistoryId)
+		{
+			var inventoryHistories = await _unitOfWork.GetRepository<InventoryHistories>().GetByIdAsync(inventoryHistoryId)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found inventory history !"});
+
+			// nếu là nhập kho thì isImport phải là false dc
+			if (inventoryHistories.IsImport) 
+			{
+				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "History of this Id is import!" });
+			}
+
+			// nếu đã bị xóa thì ko thể hủy dc
+			if (inventoryHistories.DeletedTime.HasValue) 
+			{
+				throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found inventory history!!" });
+			}
+
+			//lấy mapper ra
+			var inventoryChamberMapper = await _unitOfWork.GetRepository<InventoryChamberMappers>()
+														  .Entities
+														  .FirstOrDefaultAsync(i => i.InventoryId == inventoryHistoryId && !i.DeletedTime.HasValue)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found any chamber mapper with given Inventory History Id" });
+
+			//lấy chamber product tương ứng từ mapper
+			var chamberProduct = await _unitOfWork.GetRepository<ChamberProducts>()
+												  .Entities
+												  .FirstOrDefaultAsync(c => c.Id == inventoryChamberMapper.ChamberId && !c.DeletedTime.HasValue)
+										?? throw new ErrorException(StatusCodes.Status404NotFound, new ErrorDetail() { ErrorMessage = "Cannot found any chamber base on inventory history Id" });
+
+			//cập nhật lại số lượng thùng hàng trong chamber
+			chamberProduct.Quantity += inventoryChamberMapper.Quantity;
+
+			//cập nhật lại trạng thái đã xóa của lịch sử
+			inventoryHistories.DeletedTime = CoreHelper.SystemTimeNows;
+			inventoryHistories.DeletedBy = "Admin";
+
+			//cập nhật lại trạng thái đã xóa của mappper
+			inventoryChamberMapper.DeletedTime = CoreHelper.SystemTimeNows;
+			inventoryChamberMapper.DeletedBy = "Admin";
+
+			//lưu lại
+			await _unitOfWork.SaveAsync();
+
+		}
+
+		
 	}
 }
 

@@ -8,7 +8,7 @@ using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMayBE.API.Controllers
 {
-	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
+	//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class WarehouseController : Controller
@@ -69,6 +69,34 @@ namespace XuongMayBE.API.Controllers
 			{
 				await _chamberService.ExportProductAsync(exportModel);
 				return Ok("Export successfully!");
+			}
+			catch (ErrorException eex)
+			{
+				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
+			}
+		}
+
+		[HttpDelete("import/{inventoryHistoryId}")]
+		public async Task<IActionResult> CancelImport(int inventoryHistoryId)
+		{
+			try
+			{
+				await _chamberService.CancelImportAsync(inventoryHistoryId);
+				return Ok("Cancel successfully!");
+			}
+			catch (ErrorException eex)
+			{
+				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
+			}
+		}
+
+		[HttpDelete("export/{inventoryHistoryId}")]
+		public async Task<IActionResult> CancelExport(int inventoryHistoryId)
+		{
+			try
+			{
+				await _chamberService.CancelExportAsync(inventoryHistoryId);
+				return Ok("Cancel successfully!");
 			}
 			catch (ErrorException eex)
 			{
