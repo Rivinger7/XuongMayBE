@@ -32,7 +32,8 @@ namespace XuongMayBE.API
                 options.Cookie.IsEssential = true;
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
             });
-        }
+			services.AddHttpContextAccessor();
+		}
         public static void ConfigRoute(this IServiceCollection services)
         {
             services.Configure<RouteOptions>(options =>
@@ -80,11 +81,11 @@ namespace XuongMayBE.API
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Enter 'Bearer' [space] token",
+                    Description = "Enter JWT token here!",
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {

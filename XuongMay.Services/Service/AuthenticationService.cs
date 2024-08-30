@@ -39,7 +39,8 @@ namespace XuongMay.Services.Service
             // JWT
             var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, retrieveUser.Id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, retrieveUser.Id.ToString()),
+                    new Claim(ClaimTypes.Name, retrieveUser.Username),
                     new Claim(ClaimTypes.Role, retrieveUser.Role)
                 };
 

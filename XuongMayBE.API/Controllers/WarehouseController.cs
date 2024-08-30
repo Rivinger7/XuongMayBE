@@ -8,7 +8,7 @@ using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMayBE.API.Controllers
 {
-	//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class WarehouseController : Controller

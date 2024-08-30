@@ -12,6 +12,7 @@ using XuongMay.ModelViews.ChamberModelViews;
 using XuongMay.ModelViews.InventoryHistoriesModelViews;
 using static XuongMay.Core.Base.BaseException;
 using XuongMay.ModelViews.WarehouseModelViews;
+using System.Security.Claims;
 
 namespace XuongMay.Services.Service
 {
@@ -179,12 +180,6 @@ namespace XuongMay.Services.Service
 		public async Task ExportProductAsync(ExportProductModel exportModel)
 		{
 
-			// lấy ra user hiện tại
-			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new ErrorException(StatusCodes.Status401Unauthorized,
-										new ErrorDetail() { ErrorMessage = "You haven't loggin!" });
-			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
-
-
 			if (string.IsNullOrWhiteSpace(exportModel.InventoryName))
 			{
 				throw new ErrorException(StatusCodes.Status400BadRequest, new ErrorDetail() { ErrorMessage = "The inventory name must have at least 1 character" });
@@ -245,7 +240,7 @@ namespace XuongMay.Services.Service
 				TotalQuantity = exportModel.Quantity,
 				ItemPerBox = exportModel.ItemPerBox,
 				CreatedTime = CoreHelper.SystemTimeNows,
-				CreatedBy = user.FullName,
+				CreatedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value,
 				Name = exportModel.InventoryName,
 				IsImport = false, // đây là export :>
 			};
@@ -334,11 +329,11 @@ namespace XuongMay.Services.Service
 
 				//cập nhật lại trạng thái đã xóa của lịch sử
 				inventoryHistories.DeletedTime = CoreHelper.SystemTimeNows;
-				inventoryHistories.DeletedBy = "Admin";
+				inventoryHistories.DeletedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
 				//cập nhật lại trạng thái đã xóa của mappper
 				inventoryChamberMapper.DeletedTime = CoreHelper.SystemTimeNows;
-				inventoryChamberMapper.DeletedBy = "Admin";
+				inventoryChamberMapper.DeletedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
 				//lưu lại
 				await _unitOfWork.SaveAsync();
@@ -385,11 +380,11 @@ namespace XuongMay.Services.Service
 
 			//cập nhật lại trạng thái đã xóa của lịch sử
 			inventoryHistories.DeletedTime = CoreHelper.SystemTimeNows;
-			inventoryHistories.DeletedBy = "Admin";
+			inventoryHistories.DeletedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
 			//cập nhật lại trạng thái đã xóa của mappper
 			inventoryChamberMapper.DeletedTime = CoreHelper.SystemTimeNows;
-			inventoryChamberMapper.DeletedBy = "Admin";
+			inventoryChamberMapper.DeletedBy = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
 			//lưu lại
 			await _unitOfWork.SaveAsync();

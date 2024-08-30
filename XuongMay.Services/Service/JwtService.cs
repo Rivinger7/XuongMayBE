@@ -175,7 +175,7 @@ namespace XuongMay.Services.Service
 
 			var principal = GetPrincipalFromExpiredToken(tokenApiModel.AccessToken);
 
-			string Id = principal.Identity.Name; //this is mapped to the Name claim by default
+			string Id = principal.FindFirst(ClaimTypes.NameIdentifier).Value;//this is mapped to the Name claim by default
 
 			//get user 
 			var user = _unitOfWork.GetRepository<User>().GetById(Int32.Parse(Id))

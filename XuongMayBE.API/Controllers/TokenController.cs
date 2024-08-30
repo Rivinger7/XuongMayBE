@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using XuongMay.Contract.Services.Interface;
 using XuongMay.ModelViews.AuthModelViews;
 using XuongMay.ModelViews.JwtModelViews;
@@ -13,10 +14,12 @@ namespace XuongMayBE.API.Controllers
 	public class TokenController : Controller
 	{
 		private readonly IJwtService _jwtService;
+		private readonly IHttpContextAccessor _httpContextAccessor;
 
-		public TokenController(IJwtService jwtService)
+		public TokenController(IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
 		{
 			_jwtService = jwtService;
+			_httpContextAccessor = httpContextAccessor;
 		}
 
 		/// <summary>
@@ -58,8 +61,9 @@ namespace XuongMayBE.API.Controllers
 		{
 			try
 			{
-				var Id = User.Identity.Name; //get username from claim in token
-				_jwtService.RevokeToken(Id);
+				//var Id = User.Identity.Name; //get username from claim in token
+				string userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+				_jwtService.RevokeToken(userId);
 				return NoContent();
 			}
 			catch (ErrorException eex)
