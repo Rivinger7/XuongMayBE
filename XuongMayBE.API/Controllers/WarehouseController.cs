@@ -21,7 +21,6 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-
 		/// Nhập kho
 		/// </summary>
 		[HttpPost("import")]
@@ -30,7 +29,7 @@ namespace XuongMayBE.API.Controllers
 			try
 			{
 				await _chamberService.ImportChambers(model);
-				return Ok();
+				return Ok("Import successfully!");
 			}
 			catch (Exception ex)
 			{

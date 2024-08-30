@@ -46,23 +46,23 @@ namespace XuongMay.Services.Service
 				throw new Exception("Please select the chamber!");
 			}
 			// Kiểm tra Quantity phải >= 0
-			if (model.Quantity < 0)
+			if (model.Quantity <= 0)
 			{
 				throw new Exception("Quantity must be >= 0!");
 			}
 			// Kiểm tra ItemPerBox phải >= 0
-			if (model.ItemPerBox < 0)
+			if (model.ItemPerBox <= 0)
 			{
 				throw new Exception("Item Per Box must be >= 0!");
 			}
 			// Kiểm tra các productIds có tồn tại ko?
-			foreach (var productId in model.ProductIds)
+			foreach (int productId in model.ProductIds)
 			{
 				Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == productId && !p.DeletedTime.HasValue)
 									?? throw new Exception("The Product can not found!");
 			}
 			// Kiểm tra các chamberIds có tồn tại ko?
-			foreach (var chamberId in model.ChamberIds)
+			foreach (int chamberId in model.ChamberIds)
 			{
 				ChamberProducts chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue)
 											?? throw new Exception("The Chamber can not found!");
@@ -89,7 +89,7 @@ namespace XuongMay.Services.Service
 				await _unitOfWork.SaveAsync();
 
 				// Lấy đơn nhập kho mới tạo
-				import = await _unitOfWork.GetRepository<InventoryHistories>().Entities.FirstOrDefaultAsync(i => i.Name == model.Name && i.ProductId == productId && !i.DeletedTime.HasValue);
+				//import = await _unitOfWork.GetRepository<InventoryHistories>().Entities.FirstOrDefaultAsync(i => i.Name == model.Name && i.ProductId == productId && !i.DeletedTime.HasValue); - KO CẦN
 
 				foreach (var chamberId in model.ChamberIds)
 				{
@@ -103,12 +103,12 @@ namespace XuongMay.Services.Service
 						CreatedTime = now
 					};
 					await _unitOfWork.GetRepository<InventoryChamberMappers>().InsertAsync(newInventoryChamber);
-					await _unitOfWork.SaveAsync();
+					
 
 					//Cập nhật quantity trong ChamberProducts
 					ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue);
-					chamber.Quantity = chamber.Quantity + model.Quantity;
-					_unitOfWork.GetRepository<ChamberProducts>().Update(chamber);
+					chamber.Quantity +=  model.Quantity;
+					await _unitOfWork.GetRepository<ChamberProducts>().UpdateAsync(chamber);
 					await _unitOfWork.SaveAsync();
 				}
 			}
