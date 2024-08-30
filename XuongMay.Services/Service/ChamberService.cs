@@ -56,13 +56,13 @@ namespace XuongMay.Services.Service
 				throw new Exception("Item Per Box must be >= 0!");
 			}
 			// Kiểm tra các productIds có tồn tại ko?
-			foreach (var productId in model.ProductIds)
+			foreach (int productId in model.ProductIds)
 			{
 				Product product = await _unitOfWork.GetRepository<Product>().Entities.FirstOrDefaultAsync(p => p.Id == productId && !p.DeletedTime.HasValue)
 									?? throw new Exception("The Product can not found!");
 			}
 			// Kiểm tra các chamberIds có tồn tại ko?
-			foreach (var chamberId in model.ChamberIds)
+			foreach (int chamberId in model.ChamberIds)
 			{
 				ChamberProducts chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue)
 											?? throw new Exception("The Chamber can not found!");
@@ -71,7 +71,7 @@ namespace XuongMay.Services.Service
 			DateTime now = CoreHelper.SystemTimeNows;
 			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
 			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
-			foreach (var productId in model.ProductIds)
+			foreach (int productId in model.ProductIds)
 			{
 				// Số dòng mới trong InventoryHistories = số productIds
 				InventoryHistories import = new()
@@ -86,12 +86,8 @@ namespace XuongMay.Services.Service
 					ItemPerBox = model.ItemPerBox
 				};
 				await _unitOfWork.GetRepository<InventoryHistories>().InsertAsync(import);
-				await _unitOfWork.SaveAsync();
 
-				// Lấy đơn nhập kho mới tạo
-				import = await _unitOfWork.GetRepository<InventoryHistories>().Entities.FirstOrDefaultAsync(i => i.Name == model.Name && i.ProductId == productId && !i.DeletedTime.HasValue);
-
-				foreach (var chamberId in model.ChamberIds)
+				foreach (int chamberId in model.ChamberIds)
 				{
 					// Số dòng mới trong InventoryChamberMappers = số ProductId * số ChamberIds
 					InventoryChamberMappers newInventoryChamber = new()
@@ -103,17 +99,17 @@ namespace XuongMay.Services.Service
 						CreatedTime = now
 					};
 					await _unitOfWork.GetRepository<InventoryChamberMappers>().InsertAsync(newInventoryChamber);
-					await _unitOfWork.SaveAsync();
 
 					//Cập nhật quantity trong ChamberProducts
 					ChamberProducts? chamber = await _unitOfWork.GetRepository<ChamberProducts>().Entities.FirstOrDefaultAsync(c => c.Id == chamberId && !c.DeletedTime.HasValue);
-					chamber.Quantity = chamber.Quantity + model.Quantity;
+					chamber.Quantity += model.Quantity;
 					_unitOfWork.GetRepository<ChamberProducts>().Update(chamber);
 					await _unitOfWork.SaveAsync();
 				}
 			}
 		}
 
+		#region Xem lịch sử xuất/nhập kho
 		public async Task<BasePaginatedList<ResponseInventoryHistoryModel>> GetInventoryHistoriesAsync(int pageNumber, int pageSize, int chamberID, int? searchId, string? searchProductName, bool? importAndExport)
 		{
 			//Check chamber có tồn tại không
@@ -173,6 +169,7 @@ namespace XuongMay.Services.Service
 			//Tạo BasePaginatedList và trả về
 			return new BasePaginatedList<ResponseInventoryHistoryModel>(pageInventoryHistory, totalCategory, pageNumber, pageSize);
 		}
+		#endregion
 
 		//Xuất kho
 		public async Task ExportProductAsync(ExportProductModel exportModel)
@@ -269,6 +266,88 @@ namespace XuongMay.Services.Service
 
 
 		}
+
+		#region Cập nhật sản phẩm hiện tại sang 1 sản phẩm khác
+		public async Task UpdateProduct(int chamberId, int productId, int productIdNew, int itemPerBox)
+		{
+			//Check khoang có tồn tại không
+			ChamberProducts? chamber = _unitOfWork.GetRepository<ChamberProducts>().GetById(chamberId)
+				?? throw new Exception("Khoang không tồn tại");
+
+			//Check sản phẩm hiện tại có tồn tại không
+			Product? product = _unitOfWork.GetRepository<Product>().GetById(productId)
+				?? throw new Exception("Sản phẩm không tồn tại");
+
+			//Check sản phẩm mới có tồn tại không
+			Product? productNew = _unitOfWork.GetRepository<Product>().GetById(productIdNew) 
+				?? throw new Exception("Sản phẩm mới không tồn tại");
+
+			//Lấy danh sách InventoryChamberMapper của sản phẩm cũ
+			List<InventoryChamberMappers> listMapper = await _unitOfWork.GetRepository<InventoryChamberMappers>()
+				.Entities
+				.Where(i => i.ChamberId == chamberId && !i.DeletedTime.HasValue 
+							&& i.InventoryHistories.ProductId == productId && i.InventoryHistories.ItemPerBox == itemPerBox)
+				.ToListAsync();
+
+			//Check nếu không tìm thấy sản phẩm trong khoang để nâng cấp
+			if (listMapper.Count == 0)
+			{
+				throw new Exception("Không tìm thấy sản phẩm trong khoang để nâng cấp");
+			}
+
+			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
+			User? user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
+
+			//Duyệt qua từng InventoryChamberMapper của sản phẩm cũ
+			foreach (InventoryChamberMappers mapper in listMapper)
+			{
+				//Lấy thông tin InventoryHistories tương ứng với InventoryId của mapper
+				InventoryHistories? history = _unitOfWork.GetRepository<InventoryHistories>().GetById(mapper.InventoryId);
+
+				//Check nếu lịch sử nhập kho tồn tại và không bị xóa
+				if (history.IsImport == true && !history.DeletedTime.HasValue)
+				{
+					//Xóa InventoryChamberMapper của sản phẩm cũ
+					mapper.DeletedTime = CoreHelper.SystemTimeNows;
+					_unitOfWork.GetRepository<InventoryChamberMappers>().Update(mapper);
+
+					//Tạo mới lịch sử nhập kho cho sản phẩm mới
+					InventoryHistories newInventoryHistory = new()
+					{
+						ProductId = productIdNew,
+						Name = history.Name,
+						Description = history.Description,
+						IsImport = true,
+						TotalQuantity = mapper.Quantity,
+						CreatedBy = user.FullName,
+						CreatedTime = CoreHelper.SystemTimeNows,
+						ItemPerBox = itemPerBox
+					};
+
+					await _unitOfWork.GetRepository<InventoryHistories>().InsertAsync(newInventoryHistory);
+					await _unitOfWork.SaveAsync();
+
+					//Tạo InventoryChamberMapper cho sản phẩm mới
+					InventoryChamberMappers invenChamberMapper = new() 
+					{ 
+						InventoryId = newInventoryHistory.Id,
+						ChamberId = chamberId,
+						Quantity = mapper.Quantity,
+						CreatedBy = user.FullName,
+						CreatedTime = CoreHelper.SystemTimeNows
+					};
+					await _unitOfWork.GetRepository<InventoryChamberMappers>().InsertAsync(invenChamberMapper);
+					await _unitOfWork.SaveAsync();
+				}
+				else if (history.IsImport == false && !history.DeletedTime.HasValue)
+				{
+					history.ProductId = productIdNew;
+					await _unitOfWork.GetRepository<InventoryHistories>().UpdateAsync(history);
+					await _unitOfWork.SaveAsync();
+				}
+			}
+		}
+		#endregion
 	}
 }
 

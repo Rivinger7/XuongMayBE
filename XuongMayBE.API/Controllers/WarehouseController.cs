@@ -8,7 +8,7 @@ using static XuongMay.Core.Base.BaseException;
 
 namespace XuongMayBE.API.Controllers
 {
-	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
+	//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Manager")]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class WarehouseController : Controller
@@ -21,7 +21,6 @@ namespace XuongMayBE.API.Controllers
 		}
 
 		/// <summary>
-
 		/// Nhập kho
 		/// </summary>
 		[HttpPost("import")]
@@ -38,6 +37,7 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
+		/// <summary>
 		/// Lấy danh sách lịch sử nhập/xuất kho của 1 khoang
 		/// </summary>
 		/// <param name="pageNumber"></param>
@@ -62,6 +62,11 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
+		/// <summary>
+		/// Xuất kho
+		/// </summary>
+		/// <param name="exportModel"></param>
+		/// <returns></returns>
 		[HttpPost("export")]
 		public async Task<IActionResult> ExportProduct(ExportProductModel exportModel)
 		{
@@ -73,6 +78,28 @@ namespace XuongMayBE.API.Controllers
 			catch (ErrorException eex)
 			{
 				return StatusCode(eex.StatusCode, eex.ErrorDetail.ErrorMessage);
+			}
+		}
+
+		/// <summary>
+		/// Cập nhật sản phẩm hiện tại sang 1 sản phẩm khác
+		/// </summary>
+		/// <param name="chamberId"></param>
+		/// <param name="productId"></param>
+		/// <param name="productIdNew"></param>
+		/// <param name="itemPerBox"></param>
+		/// <returns></returns>
+		[HttpPut("update")]
+		public async Task<IActionResult> UpdateProduct(int chamberId, int productId, int productIdNew, int itemPerBox)
+		{
+			try
+			{
+				await _chamberService.UpdateProduct(chamberId, productId, productIdNew, itemPerBox);
+				return Ok();
+			}
+			catch (ErrorException ex)
+			{
+				return BadRequest(new { Message = ex.Message });
 			}
 		}
 	}
