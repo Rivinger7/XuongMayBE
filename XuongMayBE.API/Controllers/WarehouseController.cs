@@ -151,6 +151,26 @@ namespace XuongMayBE.API.Controllers
 			}
 		}
 
-	}
+		[HttpGet("chamber/{id:int}/products")]
+		public async Task<IActionResult> GetProductsInChamber(int id, int pageNumber = 1, int pageSize = 3)
+		{
+			try
+			{
+				var products = await _chamberService.GetProductsInChamberAsync(pageNumber, pageSize, id);
+				return Ok(products);
+			}
+            catch (ArgumentException aex)
+            {
+                return BadRequest(new { message = aex.Message });
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync(ex.Message);
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+    }
+
 }
 
