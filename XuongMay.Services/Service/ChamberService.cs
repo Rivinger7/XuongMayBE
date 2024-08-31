@@ -403,9 +403,15 @@ namespace XuongMay.Services.Service
 			{
 				throw new Exception("Item Per Box must be > 0!");
 			}
-			// Kiểm tra sự tồn tại hợp lệ
-			Product product = await _unitOfWork.GetRepository<Product>().GetByIdAsync(productId)
-								?? throw new Exception("The Product can not found!");
+			// Kiểm tra hợp lệ
+			if (!await _unitOfWork.GetRepository<InventoryHistories>().Entities.AnyAsync(i => !i.DeletedTime.HasValue && i.ProductId == productId && i.ItemPerBox == itemsPerBox))
+			{
+				throw new Exception("The entered Product with the entered ItemPerBox can not found!");
+			}
+			if (chamberId_1 == chamberId_2)
+			{
+				throw new Exception("Enter 2 DIFFERENT chamberIds, please!");
+			}
 			ChamberProducts chamber1 = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberId_1)
 								?? throw new Exception("The Chamber 1 can not found!");
 			ChamberProducts chamber2 = await _unitOfWork.GetRepository<ChamberProducts>().GetByIdAsync(chamberId_2)
@@ -413,14 +419,14 @@ namespace XuongMay.Services.Service
 			// Lấy giờ và người dùng hiện tại
 			DateTime now = CoreHelper.SystemTimeNows;
 			int userId = _contextAccessor.HttpContext.Session.GetInt32("userID") ?? throw new Exception("Login again!");
-			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue);
+			User user = await _unitOfWork.GetRepository<User>().Entities.FirstOrDefaultAsync(u => u.Id == userId && !u.DeletedTime.HasValue) ?? throw new Exception("User can not found!");
 
 			// CHUYỂN TẤT CẢ CHAMBERID CỦA sản phẩm (productId_itemsPerBox): TỪ CHAMBER 1 SANG CHAMBER 2
 			// Lấy ra list InventoryHistories của productId_itemsPerBox
-			IQueryable<int> histories = _unitOfWork.GetRepository<InventoryHistories>().Entities.Where(i => !i.DeletedTime.HasValue && i.ProductId == productId && i.ItemPerBox == itemsPerBox).Select(i => i.Id);
-			// Trong InventoryChamberMappers  => chuyển chamberId_1 thành chamberId_2
+			IQueryable<int> inventoryIds = _unitOfWork.GetRepository<InventoryHistories>().Entities.Where(i => !i.DeletedTime.HasValue && i.ProductId == productId && i.ItemPerBox == itemsPerBox).Select(i => i.Id);
+			// Trong InventoryChamberMappers  => chuyển chamberId_1 thành chamberId_2, cập nhật LASTUPDATEDTIME, LASTUPDATEDBY luôn
 			List<InventoryChamberMappers> mappers = await _unitOfWork.GetRepository<InventoryChamberMappers>().Entities
-							.Where(m => histories.Contains(m.InventoryId) && m.ChamberId == chamberId_1 && !m.DeletedTime.HasValue).ToListAsync();
+						.Where(m => inventoryIds.Contains(m.InventoryId) && m.ChamberId == chamberId_1 && !m.DeletedTime.HasValue).ToListAsync();
 			foreach (InventoryChamberMappers mapper in mappers)
 			{
 				mapper.ChamberId = chamberId_2;
@@ -429,7 +435,7 @@ namespace XuongMay.Services.Service
 			}
 			await _unitOfWork.SaveAsync();
 
-			//CẬP NHẬT QUANTITY, LASTUPDATEDTIME, LASTUPDATEDBY TRONG BẢNG CHAMBERPRODUCTS
+			//CẬP NHẬT QUANTITY TRONG BẢNG CHAMBERPRODUCTS
 			IQueryable<InventoryChamberMappers> queryMappers = _unitOfWork.GetRepository<InventoryChamberMappers>().Entities.Include(m => m.InventoryHistories).Where(m => !m.DeletedTime.HasValue);
 			//cho chamberId_1
 			chamber1.Quantity = queryMappers.Where(m => m.ChamberId == chamberId_1 && m.InventoryHistories.IsImport == true).Sum(m => m.Quantity)
